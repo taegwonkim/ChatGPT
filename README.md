@@ -2,13 +2,55 @@
 
 STM32L562CET6가 UART로 ESP32-C3-WROOM의 ESP-AT 펌웨어를 제어해 Wi-Fi AP와 원격 TCP/UDP 서버에 접속하는 예제입니다. 여기서 `server_ip`/`server_port`는 ESP32가 접속할 **원격 서버** 주소입니다.
 
-## 연결 및 준비
+## STM32CubeIDE/CubeMX 설정
 
 1. ESP32-C3에 Espressif ESP-AT 펌웨어를 설치하고 기본 UART 핀/baud를 확인합니다.
 2. STM32 UART TX→ESP RX, STM32 RX←ESP TX, GND를 공통 연결합니다. 전원과 EN 핀은 모듈 데이터시트에 맞게 구성합니다(3.3 V 로직).
-3. CubeMX에서 해당 UART를 115200, 8 data bits, no parity, 1 stop bit로 설정합니다.
-4. `esp32c3_at.c/.h`를 빌드에 추가하고 `example_stm32l562.c`의 UART 핸들 및 접속 정보를 수정합니다.
-5. 초기화 뒤 `while (1)`에서 `App_Loop()`를 계속 호출합니다.
+3. STM32CubeIDE의 `.ioc` 설정에서 **Connectivity → USART1 → Asynchronous**를 선택하고 115200 baud, 8 data bits, no parity, 1 stop bit, TX/RX 모드로 설정합니다.
+4. **NVIC Settings → USART1 global interrupt**를 활성화한 뒤 코드를 생성합니다. CubeMX가 `Core/Inc/usart.h`, `Core/Src/usart.c`와 전역 핸들 `huart1`을 생성합니다.
+5. `esp32c3_at.c/.h`, `app_wifi.c/.h`를 프로젝트의 `Core/Src`, `Core/Inc`에 각각 추가하고 `app_wifi.c`의 AP/서버 설정값을 수정합니다.
+
+`main.c`의 `/* USER CODE BEGIN Includes */` 영역에 다음을 추가합니다.
+
+```c
+#include "app_wifi.h"
+```
+
+CubeMX가 생성한 `MX_USART1_UART_Init()` 호출 **다음**의 `/* USER CODE BEGIN 2 */` 영역에서 초기화합니다.
+
+```c
+if (!App_WifiInit()) {
+    Error_Handler();
+}
+```
+
+`while (1)`의 `/* USER CODE BEGIN WHILE */` 또는 `/* USER CODE BEGIN 3 */` 영역에서 상태 머신을 계속 실행합니다.
+
+```c
+while (1) {
+    App_WifiProcess();
+
+    if (App_WifiIsOnline()) {
+        /* 주기 타이머/플래그 조건에서만 App_WifiSend() 호출 */
+    }
+}
+```
+
+마지막으로 `main.c`의 USER CODE 영역에 HAL callback을 추가합니다. 다른 UART도 사용한다면 기존 callback을 삭제하지 말고 아래 전달 함수 호출을 합칩니다.
+
+```c
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+    App_WifiUartRxCpltCallback(huart);
+}
+
+void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
+{
+    App_WifiUartErrorCallback(huart);
+}
+```
+
+`app_wifi.c`는 USART1의 1-byte interrupt 수신을 circular buffer에 저장하므로 AT 명령을 기다리는 동안 들어오는 비동기 메시지도 유실 가능성을 줄입니다. `HAL_UART_RxCpltCallback()` 안에서 반드시 다음 수신을 재등록합니다.
 
 ## 명령 절차
 
@@ -25,7 +67,7 @@ STM32L562CET6가 UART로 ESP32-C3-WROOM의 ESP-AT 펌웨어를 제어해 Wi-Fi A
 
 ## 주의 사항
 
-- 제품에서는 blocking HAL 수신 대신 UART DMA/인터럽트 circular buffer를 권장합니다. 제공된 HAL 어댑터는 절차를 명확히 보여 주는 단순 예제입니다.
+- 제공된 어댑터는 USART1 interrupt circular buffer를 사용합니다. 통신량이 많으면 DMA circular mode와 IDLE line 방식으로 교체하는 것을 권장합니다.
 - SSID/비밀번호에 `"`, `,`, `\\` 같은 AT 특수문자가 있으면 ESP-AT escaping 규칙에 맞춰 별도 이스케이프 처리가 필요합니다.
 - AT 펌웨어 버전에 따라 명령 지원/응답이 다를 수 있으므로 실제 펌웨어의 ESP-AT 명령 문서를 확인하십시오.
 - `+IPD` 데이터 파싱은 애플리케이션 프로토콜에 맞게 별도로 추가해야 합니다.
