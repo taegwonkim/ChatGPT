@@ -1,0 +1,5 @@
+/build/
+*.launch
+.settings/
+Debug/
+Release/
