@@ -19,6 +19,11 @@ STM32L562CET6 + FreeRTOS 기반 SurgeDetector의 CubeMX 설정 지침과 CubeIDE
 인터페이스(`app_port.h`)만 호출한다. 실제 HAL/FreeRTOS 호출은 프로젝트별
 `app_port_stm32.c`에서 구현한다.
 
+`Core/Src/main.c`에는 peripheral 초기화 후 CMSIS-RTOS2 kernel을 시작하는 순서가,
+`Core/Src/freertos.c`에는 RTOS object와 여섯 task를 생성하는 코드가 들어 있다. CubeMX
+재생성 시 해당 내용을 `USER CODE` 구역에 유지하고 생성된 clock/peripheral init body와
+결합한다.
+
 ```text
 App/Inc/       public headers
 App/Src/       protocol, configuration and task state machines
