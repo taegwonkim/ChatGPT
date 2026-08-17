@@ -152,7 +152,7 @@ partial class WifiPanel
         ResumeLayout(false);
     }
 
-    private static Label MakeLabel(string text) => new()
+    private static Label MakeLabel(string text) => new Label
     {
         Anchor = AnchorStyles.Left,
         AutoSize = true,

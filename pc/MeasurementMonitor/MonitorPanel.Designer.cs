@@ -28,8 +28,8 @@ partial class MonitorPanel
         status.AutoSize = true; status.Name = "status"; status.Padding = new Padding(5); status.Text = "STATUS: -";
         top.AutoSize = true; top.Dock = DockStyle.Top; top.Controls.Add(autoScroll); top.Controls.Add(status);
         columns.ColumnCount = 2; columns.RowCount = 2; columns.Dock = DockStyle.Fill;
-        columns.ColumnStyles.Add(new(SizeType.Percent, 50)); columns.ColumnStyles.Add(new(SizeType.Percent, 50));
-        columns.RowStyles.Add(new(SizeType.AutoSize)); columns.RowStyles.Add(new(SizeType.Percent, 100));
+        columns.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F)); columns.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+        columns.RowStyles.Add(new RowStyle(SizeType.AutoSize)); columns.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
         columns.Controls.Add(new Label { Text = "측정값", AutoSize = true }, 0, 0);
         columns.Controls.Add(new Label { Text = "기타 MCU 데이터 / 상태", AutoSize = true }, 1, 0);
         columns.Controls.Add(measurementLog, 0, 1); columns.Controls.Add(otherLog, 1, 1);
@@ -41,6 +41,6 @@ partial class MonitorPanel
         monitorGroup.ResumeLayout(false); monitorGroup.PerformLayout(); ResumeLayout(false);
     }
 
-    private static RichTextBox LogBox() => new() { Dock = DockStyle.Fill, ReadOnly = true,
+    private static RichTextBox LogBox() => new RichTextBox { Dock = DockStyle.Fill, ReadOnly = true,
         WordWrap = false, Font = new Font("Consolas", 9F) };
 }

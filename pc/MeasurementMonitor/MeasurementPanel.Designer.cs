@@ -26,8 +26,8 @@ partial class MeasurementPanel
         readButton = new Button(); writeButton = new Button(); measurementGroup.SuspendLayout(); grid.SuspendLayout(); SuspendLayout();
 
         grid.ColumnCount = 4; grid.RowCount = 3; grid.Dock = DockStyle.Fill;
-        grid.ColumnStyles.Add(new(SizeType.Absolute, 120)); grid.ColumnStyles.Add(new(SizeType.Percent, 50));
-        grid.ColumnStyles.Add(new(SizeType.Absolute, 140)); grid.ColumnStyles.Add(new(SizeType.Percent, 50));
+        grid.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 120F)); grid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+        grid.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 140F)); grid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
         grid.Controls.Add(MakeLabel("Reference (mV)"), 0, 0); grid.Controls.Add(reference, 1, 0);
         grid.Controls.Add(MakeLabel("Offset (mV)"), 2, 0); grid.Controls.Add(offset, 3, 0);
         grid.Controls.Add(MakeLabel("Resistance (mΩ)"), 0, 1); grid.Controls.Add(resistance, 1, 1);
@@ -43,6 +43,6 @@ partial class MeasurementPanel
     }
 
     private static NumericUpDown Number(decimal min, decimal max, int decimals, decimal value) =>
-        new() { Minimum = min, Maximum = max, DecimalPlaces = decimals, Value = value, ThousandsSeparator = true, Dock = DockStyle.Fill };
-    private static Label MakeLabel(string text) => new() { Anchor = AnchorStyles.Left, AutoSize = true, Text = text };
+        new NumericUpDown { Minimum = min, Maximum = max, DecimalPlaces = decimals, Value = value, ThousandsSeparator = true, Dock = DockStyle.Fill };
+    private static Label MakeLabel(string text) => new Label { Anchor = AnchorStyles.Left, AutoSize = true, Text = text };
 }

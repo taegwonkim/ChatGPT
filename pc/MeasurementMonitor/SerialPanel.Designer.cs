@@ -29,7 +29,7 @@ partial class SerialPanel
 
         ports.DropDownStyle = ComboBoxStyle.DropDownList; ports.Name = "ports"; ports.Width = 100;
         baud.DropDownStyle = ComboBoxStyle.DropDownList; baud.Name = "baud"; baud.Width = 90;
-        baud.Items.AddRange(["9600", "19200", "38400", "57600", "115200", "230400", "460800", "921600"]);
+        baud.Items.AddRange(new object[] { "9600", "19200", "38400", "57600", "115200", "230400", "460800", "921600" });
         baud.SelectedItem = "115200";
         timeout.Minimum = 10; timeout.Maximum = 60000; timeout.Value = 1000; timeout.Name = "timeout"; timeout.Width = 90;
         refresh.AutoSize = true; refresh.Name = "refresh"; refresh.Text = "새로고침";
@@ -49,5 +49,5 @@ partial class SerialPanel
         row.ResumeLayout(false); row.PerformLayout(); serialGroup.ResumeLayout(false); serialGroup.PerformLayout(); ResumeLayout(false);
     }
 
-    private static Label MakeLabel(string text) => new() { AutoSize = true, Text = text, Margin = new Padding(10, 7, 3, 3) };
+    private static Label MakeLabel(string text) => new Label { AutoSize = true, Text = text, Margin = new Padding(10, 7, 3, 3) };
 }

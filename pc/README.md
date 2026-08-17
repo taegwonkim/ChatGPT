@@ -27,6 +27,8 @@ Visual Studio의 디자인 화면에서는 Solution Explorer의 `MainForm.cs`를
 
 기존에는 `WifiPanel`만 실제 `UserControl`/`.Designer.cs` 구조이고 나머지 panel은 `GroupBox`를 상속해 생성자에서 컨트롤을 동적으로 만들었습니다. `.csproj`의 `SubType`만 `UserControl`로 지정해도 WinForms 디자인 루트가 만들어지는 것은 아니므로 나머지는 Component Designer 안내 화면이 표시되었습니다. 현재는 네 panel 모두 실제 `UserControl` partial class와 `InitializeComponent()`를 사용하도록 변경했습니다.
 
+Main Form도 `MainForm.cs` + `MainForm.Designer.cs` 구조로 변경했으므로 `MainForm.cs`에서 **디자이너 보기**를 선택하면 Serial/Wi-Fi/Measurement/Monitor 배치가 표시됩니다. Designer 파일에는 Visual Studio의 CodeDOM parser가 안정적으로 읽을 수 있도록 `new ColumnStyle(...)`, `new RowStyle(...)`, `new object[] { ... }`처럼 타입이 명확한 기존 문법을 사용합니다. `new(...)` target-typed 표현이나 `[ ... ]` collection expression은 프로그램 빌드에는 유효해도 일부 Visual Studio 2022 WinForms Designer 버전에서 파싱 오류를 일으킬 수 있습니다.
+
 > 이 UI는 `.Designer.cs`의 고정 좌표 대신 각 panel 생성자에서 `TableLayoutPanel`, `FlowLayoutPanel`, `Dock`을 사용해 구성합니다. 따라서 designer 화면을 열었을 때 코드가 실행되어 panel이 렌더링됩니다. designer cache 때문에 빈 화면이 보이면 먼저 솔루션을 빌드한 뒤 designer를 닫았다 다시 열고, 그래도 보이지 않으면 `F5` 실행 화면에서 확인하십시오.
 
 ## 화면 구성

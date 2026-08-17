@@ -16,6 +16,7 @@
   <!-- Visual Studio 2022 Solution Explorer에서 Form/Panel designer 항목으로 표시합니다. -->
   <ItemGroup>
     <Compile Update="MainForm.cs"><SubType>Form</SubType></Compile>
+    <Compile Update="MainForm.Designer.cs"><DependentUpon>MainForm.cs</DependentUpon></Compile>
     <Compile Update="SerialPanel.cs"><SubType>UserControl</SubType></Compile>
     <Compile Update="SerialPanel.Designer.cs"><DependentUpon>SerialPanel.cs</DependentUpon></Compile>
     <Compile Update="WifiPanel.cs"><SubType>UserControl</SubType></Compile>

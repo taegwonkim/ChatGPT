@@ -2,17 +2,12 @@ using System.IO.Ports;
 
 namespace MeasurementMonitor;
 
-public class MainForm : Form
+public partial class MainForm : Form
 {
     private enum PendingRead { None, Wifi, Measurement }
-    private readonly SerialPanel serialPanel = new();
-    private readonly WifiPanel wifiPanel = new();
-    private readonly MeasurementPanel measurementPanel = new();
-    private readonly MonitorPanel monitorPanel = new();
     private readonly SerialPort port = new();
     private readonly ProtocolFramer framer = new();
     private readonly object receiveLock = new();
-    private readonly ToolTip toolTip = new();
     private PendingRead pendingRead;
     private long pendingReadExpires;
     private WifiSettings? savedWifi;
@@ -21,19 +16,7 @@ public class MainForm : Form
 
     public MainForm()
     {
-        Text = "STM32 Measurement Monitor - Visual Studio 2022"; MinimumSize = new(900, 650); StartPosition = FormStartPosition.CenterScreen;
-        var settings = new TableLayoutPanel { Dock = DockStyle.Top, Height = 245, ColumnCount = 2 };
-        settings.ColumnStyles.Add(new(SizeType.Percent, 55)); settings.ColumnStyles.Add(new(SizeType.Percent, 45));
-        serialPanel.Dock = DockStyle.Top;
-        wifiPanel.Dock = DockStyle.Fill;
-        measurementPanel.Dock = DockStyle.Fill;
-        monitorPanel.Dock = DockStyle.Fill;
-        settings.Controls.Add(wifiPanel, 0, 0); settings.Controls.Add(measurementPanel, 1, 0);
-        Controls.Add(monitorPanel); Controls.Add(settings); Controls.Add(serialPanel);
-        toolTip.SetToolTip(serialPanel, "COM port 연결과 수신 화면 지우기");
-        toolTip.SetToolTip(wifiPanel, "AP/Server/DHCP 설정 Read 및 Write");
-        toolTip.SetToolTip(measurementPanel, "측정 조건 설정 Read 및 Write");
-        toolTip.SetToolTip(monitorPanel, "MCU 측정값 및 STATUS frame 표시");
+        InitializeComponent();
 
         serialPanel.OpenCloseRequested += (_, _) => TogglePort();
         serialPanel.ClearRequested += (_, _) => monitorPanel.ClearLog();
