@@ -84,42 +84,44 @@ public class MainForm : Form
         try
         {
             byte[] buffer = new byte[port.BytesToRead]; int count = port.Read(buffer, 0, buffer.Length);
-            List<string> frames;
+            List<ReceivedFrame> frames;
             lock (receiveLock) frames = framer.Push(buffer.AsSpan(0, count)).ToList();
-            foreach (string frame in frames)
+            foreach (ReceivedFrame frame in frames)
                 BeginInvoke(new Action(() => HandleFrame(frame)));
         }
         catch (Exception ex) when (ex is IOException or InvalidOperationException) { }
     }
 
-    private void HandleFrame(string frame)
+    private void HandleFrame(ReceivedFrame received)
     {
+        string frame = received.Payload;
         if (DeviceProtocol.TryParseWifiSettings(frame, out WifiSettings? wifi) && wifi is not null)
         {
             pendingRead = PendingRead.None;
             wifiPanel.Apply(wifi);
-            monitorPanel.AddOther($"WIFI_R_ALL,{wifi.Ssid},********,{wifi.ServerIp},{wifi.ServerPort},{(wifi.Dhcp ? 1 : 0)},{wifi.LocalIp},{wifi.Gateway},{wifi.Netmask}");
+            monitorPanel.AddOther($"WIFI_R_ALL,{wifi.Ssid},********,{wifi.ServerIp},{wifi.ServerPort},{(wifi.Dhcp ? 1 : 0)},{wifi.LocalIp},{wifi.Gateway},{wifi.Netmask}", received.HasStx);
         }
         else if (DeviceProtocol.TryParseMeasurementSettings(frame, out MeasurementSettings? measurement) && measurement is not null)
         {
             pendingRead = PendingRead.None;
             measurementPanel.Apply(measurement);
-            monitorPanel.AddOther(frame);
+            monitorPanel.AddOther(frame, received.HasStx);
         }
         else if (Environment.TickCount64 <= pendingReadExpires && pendingRead == PendingRead.Wifi &&
                  DeviceProtocol.TryParseWifiSettings(frame, out wifi, true) && wifi is not null)
         {
             pendingRead = PendingRead.None;
             wifiPanel.Apply(wifi);
-            monitorPanel.AddOther($"WIFI_R_ALL,{wifi.Ssid},********,{wifi.ServerIp},{wifi.ServerPort},{(wifi.Dhcp ? 1 : 0)},{wifi.LocalIp},{wifi.Gateway},{wifi.Netmask}");
+            monitorPanel.AddOther($"WIFI_R_ALL,{wifi.Ssid},********,{wifi.ServerIp},{wifi.ServerPort},{(wifi.Dhcp ? 1 : 0)},{wifi.LocalIp},{wifi.Gateway},{wifi.Netmask}", received.HasStx);
         }
         else if (Environment.TickCount64 <= pendingReadExpires && pendingRead == PendingRead.Measurement &&
                  DeviceProtocol.TryParseMeasurementSettings(frame, out measurement, true) && measurement is not null)
         {
             pendingRead = PendingRead.None;
             measurementPanel.Apply(measurement);
-            monitorPanel.AddOther($"MEAS_R_ALL,{frame}");
+            monitorPanel.AddOther($"MEAS_R_ALL,{frame}", received.HasStx);
         }
+        else if (!received.HasStx) monitorPanel.AddOther(frame, false);
         else if (DeviceProtocol.IsMeasurementData(frame)) monitorPanel.AddMeasurement(frame);
         else monitorPanel.AddOther(frame);
     }

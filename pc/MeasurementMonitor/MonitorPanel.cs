@@ -23,10 +23,10 @@ public class MonitorPanel : GroupBox
     internal void ClearLog() { measurementLog.Clear(); otherLog.Clear(); status.Text = "STATUS: -"; }
     internal void AddFrame(string frame) => AddOther(frame);
     internal void AddMeasurement(string frame) => Append(measurementLog, frame);
-    internal void AddOther(string frame)
+    internal void AddOther(string frame, bool hasStx = true)
     {
         if (frame.StartsWith("STATUS", StringComparison.OrdinalIgnoreCase)) status.Text = frame;
-        Append(otherLog, frame);
+        Append(otherLog, hasStx ? frame : $"[RAW] {frame}");
     }
     private void Append(RichTextBox target, string frame)
     {

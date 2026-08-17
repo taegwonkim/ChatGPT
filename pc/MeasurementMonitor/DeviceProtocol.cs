@@ -103,30 +103,53 @@ internal sealed record WifiSettings(string Ssid, string Password, string ServerI
 internal sealed record MeasurementSettings(decimal ReferenceMv, decimal OffsetMv,
     decimal ResistanceMilliOhm, decimal IntervalSeconds);
 
+internal readonly record struct ReceivedFrame(string Payload, bool HasStx);
+
 internal sealed class ProtocolFramer
 {
     private readonly List<byte> payload = [];
+    private readonly List<byte> unframed = [];
     private bool receiving;
     private bool sawCr;
+    private bool sawUnframedCr;
 
-    internal IEnumerable<string> Push(ReadOnlySpan<byte> bytes)
+    internal IEnumerable<ReceivedFrame> Push(ReadOnlySpan<byte> bytes)
     {
-        var frames = new List<string>();
+        var frames = new List<ReceivedFrame>();
         foreach (byte value in bytes)
         {
             if (value == DeviceProtocol.Stx)
             {
                 payload.Clear();
+                unframed.Clear();
                 receiving = true;
                 sawCr = false;
+                sawUnframedCr = false;
                 continue;
             }
             if (!receiving)
+            {
+                if (sawUnframedCr)
+                {
+                    if (value == (byte)'\n' && unframed.Count != 0)
+                        frames.Add(new(Encoding.ASCII.GetString(unframed.ToArray()), false));
+                    unframed.Clear();
+                    sawUnframedCr = false;
+                    if (value == (byte)'\n') continue;
+                }
+                if (value == (byte)'\r')
+                {
+                    sawUnframedCr = true;
+                    continue;
+                }
+                if (unframed.Count >= 4096) unframed.Clear();
+                unframed.Add(value);
                 continue;
+            }
             if (sawCr)
             {
                 if (value == (byte)'\n')
-                    frames.Add(Encoding.ASCII.GetString(payload.ToArray()));
+                    frames.Add(new(Encoding.ASCII.GetString(payload.ToArray()), true));
                 receiving = false;
                 sawCr = false;
                 continue;
