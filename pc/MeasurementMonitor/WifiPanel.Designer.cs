@@ -95,23 +95,23 @@ partial class WifiPanel
         grid.Location = new Point(10, 26);
         grid.Name = "grid";
         grid.RowCount = 5;
-        grid.RowStyles.Add(new RowStyle(SizeType.Percent, 20F));
-        grid.RowStyles.Add(new RowStyle(SizeType.Percent, 20F));
-        grid.RowStyles.Add(new RowStyle(SizeType.Percent, 20F));
-        grid.RowStyles.Add(new RowStyle(SizeType.Percent, 20F));
-        grid.RowStyles.Add(new RowStyle(SizeType.Percent, 20F));
+        grid.RowStyles.Add(new RowStyle(SizeType.Absolute, 34F));
+        grid.RowStyles.Add(new RowStyle(SizeType.Absolute, 34F));
+        grid.RowStyles.Add(new RowStyle(SizeType.Absolute, 34F));
+        grid.RowStyles.Add(new RowStyle(SizeType.Absolute, 34F));
+        grid.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
         grid.Size = new Size(500, 194);
         grid.TabIndex = 0;
 
-        ssid.Dock = DockStyle.Fill;
+        ssid.Anchor = AnchorStyles.Left | AnchorStyles.Right;
         ssid.Name = "ssid";
-        password.Dock = DockStyle.Fill;
+        password.Anchor = AnchorStyles.Left | AnchorStyles.Right;
         password.Name = "password";
         password.UseSystemPasswordChar = true;
-        serverIp.Dock = DockStyle.Fill;
+        serverIp.Anchor = AnchorStyles.Left | AnchorStyles.Right;
         serverIp.Name = "serverIp";
         serverIp.Text = "192.168.0.100";
-        serverPort.Dock = DockStyle.Fill;
+        serverPort.Anchor = AnchorStyles.Left | AnchorStyles.Right;
         serverPort.Maximum = 65535;
         serverPort.Minimum = 1;
         serverPort.Name = "serverPort";
@@ -121,13 +121,13 @@ partial class WifiPanel
         dhcp.CheckState = CheckState.Checked;
         dhcp.Name = "dhcp";
         dhcp.Text = "DHCP On";
-        localIp.Dock = DockStyle.Fill;
+        localIp.Anchor = AnchorStyles.Left | AnchorStyles.Right;
         localIp.Name = "localIp";
         localIp.Text = "192.168.0.50";
-        gateway.Dock = DockStyle.Fill;
+        gateway.Anchor = AnchorStyles.Left | AnchorStyles.Right;
         gateway.Name = "gateway";
         gateway.Text = "192.168.0.1";
-        netmask.Dock = DockStyle.Fill;
+        netmask.Anchor = AnchorStyles.Left | AnchorStyles.Right;
         netmask.Name = "netmask";
         netmask.Text = "255.255.255.0";
         readButton.Anchor = AnchorStyles.None;
@@ -154,8 +154,11 @@ partial class WifiPanel
 
     private static Label MakeLabel(string text) => new Label
     {
-        Anchor = AnchorStyles.Left,
-        AutoSize = true,
+        Anchor = AnchorStyles.Left | AnchorStyles.Right,
+        AutoSize = false,
+        Height = 23,
+        Margin = new Padding(3),
+        TextAlign = ContentAlignment.MiddleLeft,
         Text = text
     };
 }

@@ -35,6 +35,10 @@ Main Form에서 Wi-Fi/Measurement panel은 좌우 `SplitContainer`, 설정 영�
 
 Designer에서 초기 크기를 바꾸려면 `MainForm.cs`의 Designer를 열고 splitter를 드래그하거나, Properties 창에서 `settingsSplit.SplitterDistance`(Wi-Fi 영역 너비)와 `contentSplit.SplitterDistance`(설정 영역 높이)를 변경하십시오. Serial 영역 높이는 Main Form Designer에서 `serialPanel`을 선택하고 `Size → Height`를 변경합니다. 개별 `WifiPanel.cs`나 `MeasurementPanel.cs`에서 `Size`를 바꿔도 Main Form에서는 `Dock=Fill`과 SplitContainer가 실제 크기를 결정하므로 원래처럼 보일 수 있습니다. 즉, 실행 화면의 panel 비율은 개별 panel의 `Size`가 아니라 Main Form의 두 `SplitterDistance`로 조정해야 합니다.
 
+### Wi-Fi label과 입력창 높이 맞추기
+
+Wi-Fi 설정의 첫 네 행은 `RowStyle = Absolute, 34px`로 통일했습니다. Label은 `AutoSize=false`, `Height=23`, `TextAlign=MiddleLeft`를 사용하고 TextBox/NumericUpDown은 위아래 Dock 대신 `Anchor=Left|Right`를 사용합니다. TableLayoutPanel은 위/아래 Anchor가 없는 컨트롤을 행 가운데에 배치하므로 label과 입력창의 세로 중앙 및 보이는 높이가 맞습니다. Designer에서 변경하려면 `WifiPanel.cs`를 디자인 화면으로 열고 label의 `AutoSize`, `Size.Height`, `TextAlign`, `Anchor`와 해당 행의 `RowStyle`을 같은 값으로 유지하십시오. Windows 단일 행 TextBox는 폰트에 따라 Height가 자동 결정되므로 `Dock=Fill`로 세로 방향까지 늘리지 않는 것이 중요합니다.
+
 > 이 UI는 `.Designer.cs`의 고정 좌표 대신 각 panel 생성자에서 `TableLayoutPanel`, `FlowLayoutPanel`, `Dock`을 사용해 구성합니다. 따라서 designer 화면을 열었을 때 코드가 실행되어 panel이 렌더링됩니다. designer cache 때문에 빈 화면이 보이면 먼저 솔루션을 빌드한 뒤 designer를 닫았다 다시 열고, 그래도 보이지 않으면 `F5` 실행 화면에서 확인하십시오.
 
 ## 화면 구성
