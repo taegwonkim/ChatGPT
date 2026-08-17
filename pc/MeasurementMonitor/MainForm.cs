@@ -24,6 +24,10 @@ public class MainForm : Form
         Text = "STM32 Measurement Monitor - Visual Studio 2022"; MinimumSize = new(900, 650); StartPosition = FormStartPosition.CenterScreen;
         var settings = new TableLayoutPanel { Dock = DockStyle.Top, Height = 245, ColumnCount = 2 };
         settings.ColumnStyles.Add(new(SizeType.Percent, 55)); settings.ColumnStyles.Add(new(SizeType.Percent, 45));
+        serialPanel.Dock = DockStyle.Top;
+        wifiPanel.Dock = DockStyle.Fill;
+        measurementPanel.Dock = DockStyle.Fill;
+        monitorPanel.Dock = DockStyle.Fill;
         settings.Controls.Add(wifiPanel, 0, 0); settings.Controls.Add(measurementPanel, 1, 0);
         Controls.Add(monitorPanel); Controls.Add(settings); Controls.Add(serialPanel);
         toolTip.SetToolTip(serialPanel, "COM port 연결과 수신 화면 지우기");
