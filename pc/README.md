@@ -30,7 +30,7 @@ Visual Studio의 디자인 화면에서는 Solution Explorer의 `MainForm.cs`를
 - **Serial Port**: COM port, baudrate, timeout, Open/Close, 포트 새로고침, 로그 Clear
 - **Wi-Fi 설정**: AP, server, DHCP 및 static IPv4 설정의 Read/Write
 - **Measurement 설정**: Reference, Offset, Resistance, Interval Time의 Read/Write
-- **측정값/상태**: `STX + payload + CR + LF` frame 표시와 auto scroll
+- **MCU 수신 데이터**: 왼쪽에는 숫자 CSV 측정값, 오른쪽에는 STATUS·설정 응답·기타 frame을 분리 표시하며 auto scroll 지원
 
 Read 버튼과 Write 버튼은 서로 다른 command를 전송합니다.
 
@@ -47,3 +47,7 @@ Write frame은 다음과 같습니다.
 ```
 
 수신 parser는 여러 serial read에 나뉘어 들어온 frame과 한 번에 연속 수신된 여러 frame을 모두 처리하며, 비정상 데이터는 다음 STX에서 다시 동기화합니다. MCU가 `WIFI_W_ALL,...`/`WIFI_R_ALL,...` 또는 `MEAS_W_ALL,...`/`MEAS_R_ALL,...` 설정 frame을 응답하면 해당 panel 입력값도 갱신합니다.
+
+설정 응답의 command 뒤 구분자는 `,`, `:`, `=`를 지원합니다. 예를 들어 `WIFI_R_ALL,...`, `WIFI_R_ALL:...`, `WIFI_R_ALL=...`를 모두 인식합니다. MCU가 Read command에 대한 응답에서 command를 생략하고 값만 보내는 경우에도, Read timeout 안에 도착한 8개 Wi-Fi 필드 또는 4개 Measurement 필드를 요청 중인 panel에 적용합니다. DHCP 값은 `0/1`, `OFF/ON`, `FALSE/TRUE`를 지원합니다.
+
+측정값 창에는 숫자로만 구성된 CSV frame과 `DATA,...` 또는 `MEAS_DATA,...` frame이 표시됩니다. `STATUS...`, 설정 응답, 그 밖의 문자열 frame은 오른쪽 기타 MCU 데이터 창에 표시됩니다. 측정값 protocol이 다른 식별자를 사용한다면 `DeviceProtocol.IsMeasurementData()`에 해당 식별자를 추가하십시오.

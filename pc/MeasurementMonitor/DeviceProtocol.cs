@@ -27,28 +27,65 @@ internal static class DeviceProtocol
     internal static byte[] Frame(string payload) =>
         [Stx, .. Encoding.ASCII.GetBytes(payload), (byte)'\r', (byte)'\n'];
 
-    internal static bool TryParseWifiSettings(string frame, out WifiSettings? value)
+    internal static bool TryParseWifiSettings(string frame, out WifiSettings? value,
+        bool allowPayloadOnly = false)
     {
         value = null;
-        string[] fields = frame.Split(',');
-        if (fields.Length != 9 || (fields[0] != "WIFI_W_ALL" && fields[0] != "WIFI_R_ALL") ||
-            !int.TryParse(fields[4], NumberStyles.None, CultureInfo.InvariantCulture, out int port) ||
-            port is < 1 or > 65535 || (fields[5] != "0" && fields[5] != "1")) return false;
-        value = new(fields[1], fields[2], fields[3], port, fields[5] == "1", fields[6], fields[7], fields[8]);
+        if (!TryGetPayload(frame, "WIFI_R_ALL", "WIFI_W_ALL", allowPayloadOnly,
+                8, out string[] fields) ||
+            !int.TryParse(fields[3], NumberStyles.None, CultureInfo.InvariantCulture, out int port) ||
+            port is < 1 or > 65535 || !TryParseBoolean(fields[4], out bool dhcp)) return false;
+        value = new(fields[0], fields[1], fields[2], port, dhcp, fields[5], fields[6], fields[7]);
         return true;
     }
 
-    internal static bool TryParseMeasurementSettings(string frame, out MeasurementSettings? value)
+    internal static bool TryParseMeasurementSettings(string frame, out MeasurementSettings? value,
+        bool allowPayloadOnly = false)
     {
         value = null;
-        string[] fields = frame.Split(',');
-        if (fields.Length != 5 || (fields[0] != "MEAS_W_ALL" && fields[0] != "MEAS_R_ALL") ||
-            !decimal.TryParse(fields[1], NumberStyles.Number, CultureInfo.InvariantCulture, out decimal reference) ||
-            !decimal.TryParse(fields[2], NumberStyles.Number, CultureInfo.InvariantCulture, out decimal offset) ||
-            !decimal.TryParse(fields[3], NumberStyles.Number, CultureInfo.InvariantCulture, out decimal resistance) ||
-            !decimal.TryParse(fields[4], NumberStyles.Number, CultureInfo.InvariantCulture, out decimal interval)) return false;
+        if (!TryGetPayload(frame, "MEAS_R_ALL", "MEAS_W_ALL", allowPayloadOnly,
+                4, out string[] fields) ||
+            !decimal.TryParse(fields[0], NumberStyles.Number, CultureInfo.InvariantCulture, out decimal reference) ||
+            !decimal.TryParse(fields[1], NumberStyles.Number, CultureInfo.InvariantCulture, out decimal offset) ||
+            !decimal.TryParse(fields[2], NumberStyles.Number, CultureInfo.InvariantCulture, out decimal resistance) ||
+            !decimal.TryParse(fields[3], NumberStyles.Number, CultureInfo.InvariantCulture, out decimal interval)) return false;
         value = new(reference, offset, resistance, interval);
         return true;
+    }
+
+    internal static bool IsMeasurementData(string frame)
+    {
+        string[] fields = frame.Split(',', StringSplitOptions.TrimEntries);
+        if (fields.Length > 1 && (fields[0].Equals("DATA", StringComparison.OrdinalIgnoreCase) ||
+            fields[0].Equals("MEAS_DATA", StringComparison.OrdinalIgnoreCase))) fields = fields[1..];
+        return fields.Length > 0 && fields.All(field =>
+            decimal.TryParse(field, NumberStyles.Float, CultureInfo.InvariantCulture, out _));
+    }
+
+    private static bool TryGetPayload(string frame, string readCommand, string writeCommand,
+        bool allowPayloadOnly, int expectedFields, out string[] fields)
+    {
+        string text = frame.Trim();
+        bool tagged = false;
+        foreach (string command in new[] { readCommand, writeCommand })
+        {
+            if (!text.StartsWith(command, StringComparison.OrdinalIgnoreCase)) continue;
+            text = text[command.Length..].TrimStart(' ', ',', ':', '=');
+            tagged = true;
+            break;
+        }
+        fields = text.Split(',', StringSplitOptions.TrimEntries);
+        return (tagged || allowPayloadOnly) && fields.Length == expectedFields;
+    }
+
+    private static bool TryParseBoolean(string text, out bool value)
+    {
+        if (text.Equals("1") || text.Equals("ON", StringComparison.OrdinalIgnoreCase) ||
+            text.Equals("TRUE", StringComparison.OrdinalIgnoreCase)) { value = true; return true; }
+        if (text.Equals("0") || text.Equals("OFF", StringComparison.OrdinalIgnoreCase) ||
+            text.Equals("FALSE", StringComparison.OrdinalIgnoreCase)) { value = false; return true; }
+        value = false;
+        return false;
     }
 
     // CSV 필드에 쉼표가 들어오면 MCU parser가 모호해지므로 설정 입력에서 차단합니다.

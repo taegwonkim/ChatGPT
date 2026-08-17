@@ -4,6 +4,7 @@ namespace MeasurementMonitor;
 
 public class MainForm : Form
 {
+    private enum PendingRead { None, Wifi, Measurement }
     private readonly SerialPanel serialPanel = new();
     private readonly WifiPanel wifiPanel = new();
     private readonly MeasurementPanel measurementPanel = new();
@@ -12,6 +13,8 @@ public class MainForm : Form
     private readonly ProtocolFramer framer = new();
     private readonly object receiveLock = new();
     private readonly ToolTip toolTip = new();
+    private PendingRead pendingRead;
+    private long pendingReadExpires;
 
     public MainForm()
     {
@@ -27,9 +30,9 @@ public class MainForm : Form
 
         serialPanel.OpenCloseRequested += (_, _) => TogglePort();
         serialPanel.ClearRequested += (_, _) => monitorPanel.ClearLog();
-        wifiPanel.ReadRequested += (_, _) => Send(DeviceProtocol.WifiRead());
+        wifiPanel.ReadRequested += (_, _) => SendRead(PendingRead.Wifi, DeviceProtocol.WifiRead());
         wifiPanel.WriteRequested += (_, value) => TrySend(() => DeviceProtocol.WifiWrite(value));
-        measurementPanel.ReadRequested += (_, _) => Send(DeviceProtocol.MeasurementRead());
+        measurementPanel.ReadRequested += (_, _) => SendRead(PendingRead.Measurement, DeviceProtocol.MeasurementRead());
         measurementPanel.WriteRequested += (_, value) => TrySend(() => DeviceProtocol.MeasurementWrite(value));
         port.DataReceived += PortDataReceived;
         FormClosing += (_, _) => { if (port.IsOpen) port.Close(); };
@@ -58,14 +61,23 @@ public class MainForm : Form
         try { Send(build()); }
         catch (Exception ex) { MessageBox.Show(ex.Message, "입력 오류", MessageBoxButtons.OK, MessageBoxIcon.Warning); }
     }
-    private void Send(byte[] frame)
+    private void SendRead(PendingRead kind, byte[] frame)
+    {
+        if (Send(frame))
+        {
+            pendingRead = kind;
+            pendingReadExpires = Environment.TickCount64 + serialPanel.Timeout;
+        }
+    }
+    private bool Send(byte[] frame)
     {
         try
         {
             if (!port.IsOpen) throw new InvalidOperationException("먼저 serial port를 여십시오.");
             port.Write(frame, 0, frame.Length);
+            return true;
         }
-        catch (Exception ex) { MessageBox.Show(ex.Message, "송신 오류", MessageBoxButtons.OK, MessageBoxIcon.Error); }
+        catch (Exception ex) { MessageBox.Show(ex.Message, "송신 오류", MessageBoxButtons.OK, MessageBoxIcon.Error); return false; }
     }
     private void PortDataReceived(object? sender, SerialDataReceivedEventArgs e)
     {
@@ -84,14 +96,31 @@ public class MainForm : Form
     {
         if (DeviceProtocol.TryParseWifiSettings(frame, out WifiSettings? wifi) && wifi is not null)
         {
+            pendingRead = PendingRead.None;
             wifiPanel.Apply(wifi);
-            monitorPanel.AddFrame($"{frame.Split(',')[0]},{wifi.Ssid},********,{wifi.ServerIp},{wifi.ServerPort},{(wifi.Dhcp ? 1 : 0)},{wifi.LocalIp},{wifi.Gateway},{wifi.Netmask}");
+            monitorPanel.AddOther($"WIFI_R_ALL,{wifi.Ssid},********,{wifi.ServerIp},{wifi.ServerPort},{(wifi.Dhcp ? 1 : 0)},{wifi.LocalIp},{wifi.Gateway},{wifi.Netmask}");
         }
         else if (DeviceProtocol.TryParseMeasurementSettings(frame, out MeasurementSettings? measurement) && measurement is not null)
         {
+            pendingRead = PendingRead.None;
             measurementPanel.Apply(measurement);
-            monitorPanel.AddFrame(frame);
+            monitorPanel.AddOther(frame);
         }
-        else monitorPanel.AddFrame(frame);
+        else if (Environment.TickCount64 <= pendingReadExpires && pendingRead == PendingRead.Wifi &&
+                 DeviceProtocol.TryParseWifiSettings(frame, out wifi, true) && wifi is not null)
+        {
+            pendingRead = PendingRead.None;
+            wifiPanel.Apply(wifi);
+            monitorPanel.AddOther($"WIFI_R_ALL,{wifi.Ssid},********,{wifi.ServerIp},{wifi.ServerPort},{(wifi.Dhcp ? 1 : 0)},{wifi.LocalIp},{wifi.Gateway},{wifi.Netmask}");
+        }
+        else if (Environment.TickCount64 <= pendingReadExpires && pendingRead == PendingRead.Measurement &&
+                 DeviceProtocol.TryParseMeasurementSettings(frame, out measurement, true) && measurement is not null)
+        {
+            pendingRead = PendingRead.None;
+            measurementPanel.Apply(measurement);
+            monitorPanel.AddOther($"MEAS_R_ALL,{frame}");
+        }
+        else if (DeviceProtocol.IsMeasurementData(frame)) monitorPanel.AddMeasurement(frame);
+        else monitorPanel.AddOther(frame);
     }
 }
