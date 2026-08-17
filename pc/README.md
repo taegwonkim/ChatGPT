@@ -32,7 +32,12 @@ Visual Studio의 디자인 화면에서는 Solution Explorer의 `MainForm.cs`를
 - **Measurement 설정**: Reference, Offset, Resistance, Interval Time의 Read/Write
 - **측정값/상태**: `STX + payload + CR + LF` frame 표시와 auto scroll
 
-사양에 read command와 write command가 모두 `WIFI_W_ALL`, `MEAS_W_ALL`로 적혀 있으므로 이 구현은 **Read는 command만**, **Write는 command 뒤에 CSV 설정값을 붙여서** 구분합니다. MCU가 별도의 `WIFI_R_ALL`/`MEAS_R_ALL`을 요구한다면 `DeviceProtocol.cs`의 `WifiRead()`/`MeasurementRead()` 문자열만 변경하면 됩니다.
+Read 버튼과 Write 버튼은 서로 다른 command를 전송합니다.
+
+```text
+Wi-Fi Read       : <STX>WIFI_R_ALL<CR><LF>
+Measurement Read : <STX>MEAS_R_ALL<CR><LF>
+```
 
 Write frame은 다음과 같습니다.
 

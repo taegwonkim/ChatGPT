@@ -7,8 +7,7 @@ internal static class DeviceProtocol
 {
     internal const byte Stx = 0x02;
 
-    // 사양에 read/write command가 동일하게 명시되어 있어 read는 인자 없이 전송합니다.
-    internal static byte[] WifiRead() => Frame("WIFI_W_ALL");
+    internal static byte[] WifiRead() => Frame("WIFI_R_ALL");
 
     internal static byte[] WifiWrite(WifiSettings value) => Frame(string.Join(',',
         "WIFI_W_ALL", Escape(value.Ssid), Escape(value.Password),
@@ -16,7 +15,7 @@ internal static class DeviceProtocol
         value.Dhcp ? "1" : "0", Escape(value.LocalIp), Escape(value.Gateway),
         Escape(value.Netmask)));
 
-    internal static byte[] MeasurementRead() => Frame("MEAS_W_ALL");
+    internal static byte[] MeasurementRead() => Frame("MEAS_R_ALL");
 
     internal static byte[] MeasurementWrite(MeasurementSettings value) => Frame(string.Join(',',
         "MEAS_W_ALL",
