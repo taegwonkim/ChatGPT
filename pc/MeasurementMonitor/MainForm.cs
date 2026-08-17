@@ -145,7 +145,11 @@ public partial class MainForm : Form
             wifiPanel.Apply(wifi);
             SaveSettings(wifi, savedMeasurement, savedSerial, CurrentLayout);
         }
-        else if (received.HasStx && DeviceProtocol.TryParseMeasurementSettings(frame, out MeasurementSettings? measurement) && measurement is not null)
+        // Measurement 설정 응답은 command 없이 4개 숫자 값만 오므로 DC_ 측정값
+        // 분류보다 먼저 설정 payload로 판정해야 합니다.
+        else if (received.HasStx &&
+                 DeviceProtocol.TryParseMeasurementSettings(frame,
+                     out MeasurementSettings? measurement, true) && measurement is not null)
         {
             pendingRead = PendingRead.None;
             measurementPanel.Apply(measurement);
@@ -157,13 +161,6 @@ public partial class MainForm : Form
             pendingRead = PendingRead.None;
             wifiPanel.Apply(wifi);
             SaveSettings(wifi, savedMeasurement, savedSerial, CurrentLayout);
-        }
-        else if (received.HasStx && Environment.TickCount64 <= pendingReadExpires && pendingRead == PendingRead.Measurement &&
-                 DeviceProtocol.TryParseMeasurementSettings(frame, out measurement, true) && measurement is not null)
-        {
-            pendingRead = PendingRead.None;
-            measurementPanel.Apply(measurement);
-            SaveSettings(savedWifi, measurement, savedSerial, CurrentLayout);
         }
         else if (!received.HasStx) monitorPanel.AddOther(frame, false);
         else if (frame.StartsWith("WIFI_R_ALL", StringComparison.OrdinalIgnoreCase) ||
