@@ -55,6 +55,9 @@ internal static class DeviceProtocol
 
     internal static bool IsMeasurementData(string frame)
     {
+        // MCU 측정 frame의 정식 식별자: <STX>DC_...<CR><LF>
+        if (frame.StartsWith("DC_", StringComparison.OrdinalIgnoreCase)) return true;
+
         string[] fields = frame.Split(',', StringSplitOptions.TrimEntries);
         if (fields.Length > 1 && (fields[0].Equals("DATA", StringComparison.OrdinalIgnoreCase) ||
             fields[0].Equals("MEAS_DATA", StringComparison.OrdinalIgnoreCase))) fields = fields[1..];

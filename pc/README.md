@@ -50,6 +50,6 @@ Write frame은 다음과 같습니다.
 
 설정 응답의 command 뒤 구분자는 `,`, `:`, `=`를 지원합니다. 예를 들어 `WIFI_R_ALL,...`, `WIFI_R_ALL:...`, `WIFI_R_ALL=...`를 모두 인식합니다. MCU가 Read command에 대한 응답에서 command를 생략하고 값만 보내는 경우에도, Read timeout 안에 도착한 8개 Wi-Fi 필드 또는 4개 Measurement 필드를 요청 중인 panel에 적용합니다. DHCP 값은 `0/1`, `OFF/ON`, `FALSE/TRUE`를 지원합니다.
 
-측정값 창에는 숫자로만 구성된 CSV frame과 `DATA,...` 또는 `MEAS_DATA,...` frame이 표시됩니다. `STATUS...`, 설정 응답, 그 밖의 문자열 frame은 오른쪽 기타 MCU 데이터 창에 표시됩니다. 측정값 protocol이 다른 식별자를 사용한다면 `DeviceProtocol.IsMeasurementData()`에 해당 식별자를 추가하십시오.
+측정값의 기본 형식은 `<STX>DC_-----<CR><LF>`입니다. STX가 붙은 payload가 `DC_`로 시작하면 `-----` 부분의 내용이 숫자가 아니더라도 왼쪽 **측정값** 창에 표시됩니다. 이전 호환성을 위해 STX가 붙은 숫자 CSV, `DATA,...`, `MEAS_DATA,...`도 측정값으로 인식합니다. `STATUS...`, 설정 응답, 그 밖의 문자열 frame은 오른쪽 기타 MCU 데이터 창에 표시됩니다.
 
 측정값은 `<STX>payload<CR><LF>`로 수신하고, 그 이외의 MCU 데이터는 STX 없이 `payload<CR><LF>`로 수신하는 형식을 지원합니다. STX가 없는 Wi-Fi/Measurement 설정 응답도 먼저 parser에 전달되어 해당 설정 panel을 갱신합니다. 설정 응답이 아닌 STX 없는 line은 내용이 숫자 CSV처럼 보이더라도 항상 오른쪽 **기타 MCU 데이터 / 상태** 창에 `[RAW]` 표시와 함께 출력됩니다. 수신 중 STX가 나타나면 그 지점부터 새 framed packet으로 다시 동기화합니다.
