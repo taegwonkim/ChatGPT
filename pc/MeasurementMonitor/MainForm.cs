@@ -5,6 +5,7 @@ namespace MeasurementMonitor;
 public partial class MainForm : Form
 {
     private enum PendingRead { None, Wifi, Measurement }
+    private const int MinimumSettingsResponseTimeoutMs = 5000;
     private readonly SerialPort port = new();
     private readonly ProtocolFramer framer = new();
     private readonly object receiveLock = new();
@@ -89,7 +90,9 @@ public partial class MainForm : Form
         if (Send(frame))
         {
             pendingRead = kind;
-            pendingReadExpires = Environment.TickCount64 + serialPanel.Timeout;
+            // 설정 응답은 command 없이 값만 오므로 일반 serial timeout보다 길게 기다립니다.
+            pendingReadExpires = Environment.TickCount64 +
+                Math.Max(serialPanel.Timeout, MinimumSettingsResponseTimeoutMs);
         }
     }
     private bool Send(byte[] frame)

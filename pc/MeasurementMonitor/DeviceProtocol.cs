@@ -79,6 +79,9 @@ internal static class DeviceProtocol
             break;
         }
         fields = text.Split([',', ';', '|'], StringSplitOptions.TrimEntries);
+        // MCU가 마지막 항목 뒤에도 ','를 붙이는 응답 형식을 허용합니다.
+        if (fields.Length == expectedFields + 1 && fields[^1].Length == 0)
+            fields = fields[..^1];
         return (tagged || allowPayloadOnly) && fields.Length == expectedFields;
     }
 
