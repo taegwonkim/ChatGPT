@@ -1,6 +1,6 @@
 namespace MeasurementMonitor;
 
-internal sealed class MeasurementPanel : GroupBox
+public class MeasurementPanel : GroupBox
 {
     private readonly NumericUpDown reference = Number(0, 1000000, 1);
     private readonly NumericUpDown offset = Number(-1000000, 1000000, 1);
@@ -9,7 +9,7 @@ internal sealed class MeasurementPanel : GroupBox
     internal event EventHandler? ReadRequested;
     internal event EventHandler<MeasurementSettings>? WriteRequested;
 
-    internal MeasurementPanel()
+    public MeasurementPanel()
     {
         Text = "Measurement 설정"; Dock = DockStyle.Fill; Padding = new Padding(10);
         var grid = Ui.Grid();

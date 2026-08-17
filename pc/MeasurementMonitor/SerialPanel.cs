@@ -2,7 +2,7 @@ using System.IO.Ports;
 
 namespace MeasurementMonitor;
 
-internal sealed class SerialPanel : GroupBox
+public class SerialPanel : GroupBox
 {
     private readonly ComboBox ports = new() { DropDownStyle = ComboBoxStyle.DropDownList };
     private readonly ComboBox baud = new() { DropDownStyle = ComboBoxStyle.DropDownList };
@@ -17,7 +17,7 @@ internal sealed class SerialPanel : GroupBox
     internal int BaudRate => int.Parse(baud.Text);
     internal int Timeout => decimal.ToInt32(timeout.Value);
 
-    internal SerialPanel()
+    public SerialPanel()
     {
         Text = "Serial Port";
         Dock = DockStyle.Top;

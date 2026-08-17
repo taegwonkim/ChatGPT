@@ -2,7 +2,7 @@ using System.Net;
 
 namespace MeasurementMonitor;
 
-internal sealed class WifiPanel : GroupBox
+public class WifiPanel : GroupBox
 {
     private readonly TextBox ssid = new();
     private readonly TextBox password = new() { UseSystemPasswordChar = true };
@@ -15,7 +15,7 @@ internal sealed class WifiPanel : GroupBox
     internal event EventHandler? ReadRequested;
     internal event EventHandler<WifiSettings>? WriteRequested;
 
-    internal WifiPanel()
+    public WifiPanel()
     {
         Text = "Wi-Fi 설정";
         Dock = DockStyle.Fill;

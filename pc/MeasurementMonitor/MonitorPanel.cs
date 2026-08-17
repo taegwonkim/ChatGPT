@@ -1,12 +1,12 @@
 namespace MeasurementMonitor;
 
-internal sealed class MonitorPanel : GroupBox
+public class MonitorPanel : GroupBox
 {
     private readonly RichTextBox log = new() { Dock = DockStyle.Fill, ReadOnly = true, WordWrap = false };
     private readonly CheckBox autoScroll = new() { Text = "Auto scroll", Checked = true, AutoSize = true };
     private readonly Label status = new() { Text = "STATUS: -", AutoSize = true, Padding = new Padding(5) };
 
-    internal MonitorPanel()
+    public MonitorPanel()
     {
         Text = "측정값 / 상태"; Dock = DockStyle.Fill; Padding = new Padding(10);
         var top = new FlowLayoutPanel { Dock = DockStyle.Top, AutoSize = true };

@@ -2,7 +2,7 @@ using System.IO.Ports;
 
 namespace MeasurementMonitor;
 
-internal sealed class MainForm : Form
+public class MainForm : Form
 {
     private readonly SerialPanel serialPanel = new();
     private readonly WifiPanel wifiPanel = new();
@@ -11,14 +11,19 @@ internal sealed class MainForm : Form
     private readonly SerialPort port = new();
     private readonly ProtocolFramer framer = new();
     private readonly object receiveLock = new();
+    private readonly ToolTip toolTip = new();
 
-    internal MainForm()
+    public MainForm()
     {
-        Text = "STM32 Measurement Monitor"; MinimumSize = new(900, 650); StartPosition = FormStartPosition.CenterScreen;
+        Text = "STM32 Measurement Monitor - Visual Studio 2022"; MinimumSize = new(900, 650); StartPosition = FormStartPosition.CenterScreen;
         var settings = new TableLayoutPanel { Dock = DockStyle.Top, Height = 245, ColumnCount = 2 };
         settings.ColumnStyles.Add(new(SizeType.Percent, 55)); settings.ColumnStyles.Add(new(SizeType.Percent, 45));
         settings.Controls.Add(wifiPanel, 0, 0); settings.Controls.Add(measurementPanel, 1, 0);
         Controls.Add(monitorPanel); Controls.Add(settings); Controls.Add(serialPanel);
+        toolTip.SetToolTip(serialPanel, "COM port 연결과 수신 화면 지우기");
+        toolTip.SetToolTip(wifiPanel, "AP/Server/DHCP 설정 Read 및 Write");
+        toolTip.SetToolTip(measurementPanel, "측정 조건 설정 Read 및 Write");
+        toolTip.SetToolTip(monitorPanel, "MCU 측정값 및 STATUS frame 표시");
 
         serialPanel.OpenCloseRequested += (_, _) => TogglePort();
         serialPanel.ClearRequested += (_, _) => monitorPanel.ClearLog();

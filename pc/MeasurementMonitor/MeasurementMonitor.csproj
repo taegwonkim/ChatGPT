@@ -3,10 +3,22 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
+    <LangVersion>12.0</LangVersion>
+    <Platforms>AnyCPU;x64;x86</Platforms>
+    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
+    <StartupObject>MeasurementMonitor.Program</StartupObject>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="System.IO.Ports" Version="8.0.0" />
+  </ItemGroup>
+  <!-- Visual Studio 2022 Solution Explorer에서 Form/Panel designer 항목으로 표시합니다. -->
+  <ItemGroup>
+    <Compile Update="MainForm.cs"><SubType>Form</SubType></Compile>
+    <Compile Update="SerialPanel.cs"><SubType>UserControl</SubType></Compile>
+    <Compile Update="WifiPanel.cs"><SubType>UserControl</SubType></Compile>
+    <Compile Update="MeasurementPanel.cs"><SubType>UserControl</SubType></Compile>
+    <Compile Update="MonitorPanel.cs"><SubType>UserControl</SubType></Compile>
   </ItemGroup>
 </Project>
