@@ -7,7 +7,8 @@ partial class MainForm
     private WifiPanel wifiPanel = null!;
     private MeasurementPanel measurementPanel = null!;
     private MonitorPanel monitorPanel = null!;
-    private TableLayoutPanel settingsLayout = null!;
+    private SplitContainer contentSplit = null!;
+    private SplitContainer settingsSplit = null!;
     private ToolTip toolTip = null!;
 
     protected override void Dispose(bool disposing)
@@ -23,9 +24,17 @@ partial class MainForm
         wifiPanel = new WifiPanel();
         measurementPanel = new MeasurementPanel();
         monitorPanel = new MonitorPanel();
-        settingsLayout = new TableLayoutPanel();
+        contentSplit = new SplitContainer();
+        settingsSplit = new SplitContainer();
         toolTip = new ToolTip(components);
-        settingsLayout.SuspendLayout();
+        ((System.ComponentModel.ISupportInitialize)contentSplit).BeginInit();
+        contentSplit.Panel1.SuspendLayout();
+        contentSplit.Panel2.SuspendLayout();
+        contentSplit.SuspendLayout();
+        ((System.ComponentModel.ISupportInitialize)settingsSplit).BeginInit();
+        settingsSplit.Panel1.SuspendLayout();
+        settingsSplit.Panel2.SuspendLayout();
+        settingsSplit.SuspendLayout();
         SuspendLayout();
 
         serialPanel.Dock = DockStyle.Top;
@@ -35,18 +44,16 @@ partial class MainForm
         serialPanel.TabIndex = 0;
         toolTip.SetToolTip(serialPanel, "COM port 연결과 수신 화면 지우기");
 
-        settingsLayout.ColumnCount = 2;
-        settingsLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 55F));
-        settingsLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 45F));
-        settingsLayout.Controls.Add(wifiPanel, 0, 0);
-        settingsLayout.Controls.Add(measurementPanel, 1, 0);
-        settingsLayout.Dock = DockStyle.Top;
-        settingsLayout.Location = new Point(0, 75);
-        settingsLayout.Name = "settingsLayout";
-        settingsLayout.RowCount = 1;
-        settingsLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-        settingsLayout.Size = new Size(984, 245);
-        settingsLayout.TabIndex = 1;
+        settingsSplit.Dock = DockStyle.Fill;
+        settingsSplit.Location = new Point(0, 0);
+        settingsSplit.Name = "settingsSplit";
+        settingsSplit.Panel1.Controls.Add(wifiPanel);
+        settingsSplit.Panel1MinSize = 320;
+        settingsSplit.Panel2.Controls.Add(measurementPanel);
+        settingsSplit.Panel2MinSize = 320;
+        settingsSplit.Size = new Size(984, 245);
+        settingsSplit.SplitterDistance = 540;
+        settingsSplit.TabIndex = 0;
 
         wifiPanel.Dock = DockStyle.Fill;
         wifiPanel.Name = "wifiPanel";
@@ -58,23 +65,41 @@ partial class MainForm
         toolTip.SetToolTip(measurementPanel, "측정 조건 설정 Read 및 Write");
 
         monitorPanel.Dock = DockStyle.Fill;
-        monitorPanel.Location = new Point(0, 320);
+        monitorPanel.Location = new Point(0, 0);
         monitorPanel.Name = "monitorPanel";
-        monitorPanel.Size = new Size(984, 341);
+        monitorPanel.Size = new Size(984, 337);
         monitorPanel.TabIndex = 2;
         toolTip.SetToolTip(monitorPanel, "MCU 측정값 및 STATUS frame 표시");
+
+        contentSplit.Dock = DockStyle.Fill;
+        contentSplit.Location = new Point(0, 75);
+        contentSplit.Name = "contentSplit";
+        contentSplit.Orientation = Orientation.Horizontal;
+        contentSplit.Panel1.Controls.Add(settingsSplit);
+        contentSplit.Panel1MinSize = 190;
+        contentSplit.Panel2.Controls.Add(monitorPanel);
+        contentSplit.Panel2MinSize = 180;
+        contentSplit.Size = new Size(984, 586);
+        contentSplit.SplitterDistance = 245;
+        contentSplit.TabIndex = 1;
 
         AutoScaleDimensions = new SizeF(7F, 15F);
         AutoScaleMode = AutoScaleMode.Font;
         ClientSize = new Size(984, 661);
-        Controls.Add(monitorPanel);
-        Controls.Add(settingsLayout);
+        Controls.Add(contentSplit);
         Controls.Add(serialPanel);
         MinimumSize = new Size(900, 650);
         Name = "MainForm";
         StartPosition = FormStartPosition.CenterScreen;
         Text = "STM32 Measurement Monitor - Visual Studio 2022";
-        settingsLayout.ResumeLayout(false);
+        settingsSplit.Panel1.ResumeLayout(false);
+        settingsSplit.Panel2.ResumeLayout(false);
+        ((System.ComponentModel.ISupportInitialize)settingsSplit).EndInit();
+        settingsSplit.ResumeLayout(false);
+        contentSplit.Panel1.ResumeLayout(false);
+        contentSplit.Panel2.ResumeLayout(false);
+        ((System.ComponentModel.ISupportInitialize)contentSplit).EndInit();
+        contentSplit.ResumeLayout(false);
         ResumeLayout(false);
     }
 }

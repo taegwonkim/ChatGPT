@@ -3,8 +3,9 @@ using System.Text.Json;
 namespace MeasurementMonitor;
 
 internal sealed record SerialSettings(string PortName, int BaudRate, int Timeout);
+internal sealed record LayoutSettings(int SettingsHeight, int WifiWidth);
 internal sealed record SavedAppSettings(WifiSettings? Wifi, MeasurementSettings? Measurement,
-    SerialSettings? Serial);
+    SerialSettings? Serial, LayoutSettings? Layout);
 
 internal static class AppSettingsStore
 {
@@ -19,12 +20,12 @@ internal static class AppSettingsStore
         {
             return File.Exists(FilePath)
                 ? JsonSerializer.Deserialize<SavedAppSettings>(File.ReadAllText(FilePath), JsonOptions)
-                    ?? new(null, null, null)
-                : new(null, null, null);
+                    ?? new(null, null, null, null)
+                : new(null, null, null, null);
         }
-        catch (JsonException) { return new(null, null, null); }
-        catch (IOException) { return new(null, null, null); }
-        catch (UnauthorizedAccessException) { return new(null, null, null); }
+        catch (JsonException) { return new(null, null, null, null); }
+        catch (IOException) { return new(null, null, null, null); }
+        catch (UnauthorizedAccessException) { return new(null, null, null, null); }
     }
 
     internal static bool Save(SavedAppSettings settings)

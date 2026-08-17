@@ -29,6 +29,12 @@ Visual Studio의 디자인 화면에서는 Solution Explorer의 `MainForm.cs`를
 
 Main Form도 `MainForm.cs` + `MainForm.Designer.cs` 구조로 변경했으므로 `MainForm.cs`에서 **디자이너 보기**를 선택하면 Serial/Wi-Fi/Measurement/Monitor 배치가 표시됩니다. Designer 파일에는 Visual Studio의 CodeDOM parser가 안정적으로 읽을 수 있도록 `new ColumnStyle(...)`, `new RowStyle(...)`, `new object[] { ... }`처럼 타입이 명확한 기존 문법을 사용합니다. `new(...)` target-typed 표현이나 `[ ... ]` collection expression은 프로그램 빌드에는 유효해도 일부 Visual Studio 2022 WinForms Designer 버전에서 파싱 오류를 일으킬 수 있습니다.
 
+## Panel 크기 변경
+
+Main Form에서 Wi-Fi/Measurement panel은 좌우 `SplitContainer`, 설정 영역/MCU 수신 영역은 상하 `SplitContainer`로 배치됩니다. 프로그램 실행 중 가운데 splitter를 마우스로 드래그하면 각 영역 크기를 조정할 수 있으며, 종료할 때 splitter 위치를 `settings.json`에 저장해 다음 실행 시 복원합니다.
+
+Designer에서 초기 크기를 바꾸려면 `MainForm.cs`의 Designer를 열고 splitter를 드래그하거나, Properties 창에서 `settingsSplit.SplitterDistance`(Wi-Fi 영역 너비)와 `contentSplit.SplitterDistance`(설정 영역 높이)를 변경하십시오. Serial 영역 높이는 Main Form Designer에서 `serialPanel`을 선택하고 `Size → Height`를 변경합니다. 개별 `WifiPanel.cs`나 `MeasurementPanel.cs`에서 `Size`를 바꿔도 Main Form에서는 `Dock=Fill`과 SplitContainer가 실제 크기를 결정하므로 원래처럼 보일 수 있습니다. 즉, 실행 화면의 panel 비율은 개별 panel의 `Size`가 아니라 Main Form의 두 `SplitterDistance`로 조정해야 합니다.
+
 > 이 UI는 `.Designer.cs`의 고정 좌표 대신 각 panel 생성자에서 `TableLayoutPanel`, `FlowLayoutPanel`, `Dock`을 사용해 구성합니다. 따라서 designer 화면을 열었을 때 코드가 실행되어 panel이 렌더링됩니다. designer cache 때문에 빈 화면이 보이면 먼저 솔루션을 빌드한 뒤 designer를 닫았다 다시 열고, 그래도 보이지 않으면 `F5` 실행 화면에서 확인하십시오.
 
 ## 화면 구성

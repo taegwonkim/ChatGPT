@@ -14,6 +14,7 @@ public partial class MainForm : Form
     private WifiSettings? savedWifi;
     private MeasurementSettings? savedMeasurement;
     private SerialSettings? savedSerial;
+    private LayoutSettings? savedLayout;
 
     public MainForm()
     {
@@ -29,7 +30,7 @@ public partial class MainForm : Form
         FormClosing += (_, _) =>
         {
             SaveSettings(wifiPanel.CurrentSettings, measurementPanel.CurrentSettings,
-                serialPanel.CurrentSettings);
+                serialPanel.CurrentSettings, CurrentLayout);
             if (port.IsOpen) port.Close();
         };
 
@@ -37,9 +38,11 @@ public partial class MainForm : Form
         savedWifi = saved.Wifi;
         savedMeasurement = saved.Measurement;
         savedSerial = saved.Serial;
+        savedLayout = saved.Layout;
         if (savedWifi is not null) wifiPanel.Apply(savedWifi);
         if (savedMeasurement is not null) measurementPanel.Apply(savedMeasurement);
         if (savedSerial is not null) serialPanel.Apply(savedSerial);
+        Shown += (_, _) => ApplySavedLayout();
     }
 
     private void TogglePort()
@@ -53,7 +56,7 @@ public partial class MainForm : Form
                 port.PortName = serialPanel.PortName; port.BaudRate = serialPanel.BaudRate;
                 port.DataBits = 8; port.Parity = Parity.None; port.StopBits = StopBits.One;
                 port.ReadTimeout = port.WriteTimeout = serialPanel.Timeout; port.Open();
-                SaveSettings(savedWifi, savedMeasurement, serialPanel.CurrentSettings);
+                SaveSettings(savedWifi, savedMeasurement, serialPanel.CurrentSettings, CurrentLayout);
             }
             serialPanel.SetOpen(port.IsOpen);
             monitorPanel.AddFrame(port.IsOpen ? $"STATUS,PORT_OPEN,{port.PortName}" : "STATUS,PORT_CLOSED");
@@ -68,22 +71,37 @@ public partial class MainForm : Form
     }
     private void WriteWifi(WifiSettings value)
     {
-        SaveSettings(value, savedMeasurement, savedSerial);
+        SaveSettings(value, savedMeasurement, savedSerial, CurrentLayout);
         TrySend(() => DeviceProtocol.WifiWrite(value));
     }
     private void WriteMeasurement(MeasurementSettings value)
     {
-        SaveSettings(savedWifi, value, savedSerial);
+        SaveSettings(savedWifi, value, savedSerial, CurrentLayout);
         TrySend(() => DeviceProtocol.MeasurementWrite(value));
     }
     private void SaveSettings(WifiSettings? wifi, MeasurementSettings? measurement,
-        SerialSettings? serial)
+        SerialSettings? serial, LayoutSettings? layout)
     {
         savedWifi = wifi;
         savedMeasurement = measurement;
         savedSerial = serial;
-        if (!AppSettingsStore.Save(new(wifi, measurement, serial)))
+        savedLayout = layout;
+        if (!AppSettingsStore.Save(new(wifi, measurement, serial, layout)))
             monitorPanel.AddOther("[PC 설정 저장 실패] settings.json 파일을 기록할 수 없습니다.");
+    }
+    private LayoutSettings CurrentLayout => new(contentSplit.SplitterDistance,
+        settingsSplit.SplitterDistance);
+    private void ApplySavedLayout()
+    {
+        if (savedLayout is null) return;
+        contentSplit.SplitterDistance = ClampSplitter(contentSplit, savedLayout.SettingsHeight);
+        settingsSplit.SplitterDistance = ClampSplitter(settingsSplit, savedLayout.WifiWidth);
+    }
+    private static int ClampSplitter(SplitContainer split, int value)
+    {
+        int total = split.Orientation == Orientation.Vertical ? split.ClientSize.Width : split.ClientSize.Height;
+        int maximum = Math.Max(split.Panel1MinSize, total - split.Panel2MinSize - split.SplitterWidth);
+        return Math.Clamp(value, split.Panel1MinSize, maximum);
     }
     private void SendRead(PendingRead kind, byte[] frame)
     {
@@ -125,27 +143,27 @@ public partial class MainForm : Form
         {
             pendingRead = PendingRead.None;
             wifiPanel.Apply(wifi);
-            SaveSettings(wifi, savedMeasurement, savedSerial);
+            SaveSettings(wifi, savedMeasurement, savedSerial, CurrentLayout);
         }
         else if (received.HasStx && DeviceProtocol.TryParseMeasurementSettings(frame, out MeasurementSettings? measurement) && measurement is not null)
         {
             pendingRead = PendingRead.None;
             measurementPanel.Apply(measurement);
-            SaveSettings(savedWifi, measurement, savedSerial);
+            SaveSettings(savedWifi, measurement, savedSerial, CurrentLayout);
         }
         else if (received.HasStx && Environment.TickCount64 <= pendingReadExpires && pendingRead == PendingRead.Wifi &&
                  DeviceProtocol.TryParseWifiSettings(frame, out wifi, true) && wifi is not null)
         {
             pendingRead = PendingRead.None;
             wifiPanel.Apply(wifi);
-            SaveSettings(wifi, savedMeasurement, savedSerial);
+            SaveSettings(wifi, savedMeasurement, savedSerial, CurrentLayout);
         }
         else if (received.HasStx && Environment.TickCount64 <= pendingReadExpires && pendingRead == PendingRead.Measurement &&
                  DeviceProtocol.TryParseMeasurementSettings(frame, out measurement, true) && measurement is not null)
         {
             pendingRead = PendingRead.None;
             measurementPanel.Apply(measurement);
-            SaveSettings(savedWifi, measurement, savedSerial);
+            SaveSettings(savedWifi, measurement, savedSerial, CurrentLayout);
         }
         else if (!received.HasStx) monitorPanel.AddOther(frame, false);
         else if (frame.StartsWith("WIFI_R_ALL", StringComparison.OrdinalIgnoreCase) ||
