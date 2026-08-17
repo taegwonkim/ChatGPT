@@ -33,8 +33,9 @@ internal static class DeviceProtocol
         value = null;
         if (!TryGetPayload(frame, "WIFI_R_ALL", "WIFI_W_ALL", allowPayloadOnly,
                 8, out string[] fields) ||
-            !int.TryParse(fields[3], NumberStyles.None, CultureInfo.InvariantCulture, out int port) ||
-            port is < 1 or > 65535 || !TryParseBoolean(fields[4], out bool dhcp)) return false;
+            !int.TryParse(CleanValue(fields[3]), NumberStyles.None, CultureInfo.InvariantCulture, out int port) ||
+            port is < 1 or > 65535 || !TryParseBoolean(CleanValue(fields[4]), out bool dhcp)) return false;
+        for (int index = 0; index < fields.Length; index++) fields[index] = CleanValue(fields[index]);
         value = new(fields[0], fields[1], fields[2], port, dhcp, fields[5], fields[6], fields[7]);
         return true;
     }
@@ -45,10 +46,10 @@ internal static class DeviceProtocol
         value = null;
         if (!TryGetPayload(frame, "MEAS_R_ALL", "MEAS_W_ALL", allowPayloadOnly,
                 4, out string[] fields) ||
-            !decimal.TryParse(fields[0], NumberStyles.Number, CultureInfo.InvariantCulture, out decimal reference) ||
-            !decimal.TryParse(fields[1], NumberStyles.Number, CultureInfo.InvariantCulture, out decimal offset) ||
-            !decimal.TryParse(fields[2], NumberStyles.Number, CultureInfo.InvariantCulture, out decimal resistance) ||
-            !decimal.TryParse(fields[3], NumberStyles.Number, CultureInfo.InvariantCulture, out decimal interval)) return false;
+            !decimal.TryParse(CleanValue(fields[0]), NumberStyles.Number, CultureInfo.InvariantCulture, out decimal reference) ||
+            !decimal.TryParse(CleanValue(fields[1]), NumberStyles.Number, CultureInfo.InvariantCulture, out decimal offset) ||
+            !decimal.TryParse(CleanValue(fields[2]), NumberStyles.Number, CultureInfo.InvariantCulture, out decimal resistance) ||
+            !decimal.TryParse(CleanValue(fields[3]), NumberStyles.Number, CultureInfo.InvariantCulture, out decimal interval)) return false;
         value = new(reference, offset, resistance, interval);
         return true;
     }
@@ -73,13 +74,29 @@ internal static class DeviceProtocol
         foreach (string command in new[] { readCommand, writeCommand })
         {
             if (!text.StartsWith(command, StringComparison.OrdinalIgnoreCase)) continue;
-            text = text[command.Length..].TrimStart(' ', ',', ':', '=');
+            text = text[command.Length..].TrimStart(' ', ',', ';', '|', ':', '=');
             tagged = true;
             break;
         }
-        fields = text.Split(',', StringSplitOptions.TrimEntries);
+        fields = text.Split([',', ';', '|'], StringSplitOptions.TrimEntries);
         return (tagged || allowPayloadOnly) && fields.Length == expectedFields;
     }
+
+    private static string CleanValue(string field)
+    {
+        string value = field.Trim();
+        int separator = value.IndexOfAny(['=', ':']);
+        if (separator > 0 && IsSettingKey(value[..separator]))
+            value = value[(separator + 1)..].Trim();
+        return value.Trim('"');
+    }
+
+    private static bool IsSettingKey(string text) => text.Trim().ToUpperInvariant() is
+        "SSID" or "PASSWORD" or "PASS" or "SERVER_IP" or "SERVERIP" or
+        "SERVER_PORT" or "SERVERPORT" or "PORT" or "DHCP" or "IP" or
+        "LOCAL_IP" or "LOCALIP" or "GATEWAY" or "GW" or "NETMASK" or "NET_MASK" or
+        "REFERENCE" or "REFERENCE_MV" or "OFFSET" or "OFFSET_MV" or
+        "RESISTANCE" or "RESISTANCE_MOHM" or "INTERVAL" or "INTERVAL_TIME";
 
     private static bool TryParseBoolean(string text, out bool value)
     {

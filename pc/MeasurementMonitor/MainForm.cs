@@ -95,26 +95,26 @@ public class MainForm : Form
     private void HandleFrame(ReceivedFrame received)
     {
         string frame = received.Payload;
-        if (DeviceProtocol.TryParseWifiSettings(frame, out WifiSettings? wifi) && wifi is not null)
+        if (received.HasStx && DeviceProtocol.TryParseWifiSettings(frame, out WifiSettings? wifi) && wifi is not null)
         {
             pendingRead = PendingRead.None;
             wifiPanel.Apply(wifi);
             monitorPanel.AddOther($"WIFI_R_ALL,{wifi.Ssid},********,{wifi.ServerIp},{wifi.ServerPort},{(wifi.Dhcp ? 1 : 0)},{wifi.LocalIp},{wifi.Gateway},{wifi.Netmask}", received.HasStx);
         }
-        else if (DeviceProtocol.TryParseMeasurementSettings(frame, out MeasurementSettings? measurement) && measurement is not null)
+        else if (received.HasStx && DeviceProtocol.TryParseMeasurementSettings(frame, out MeasurementSettings? measurement) && measurement is not null)
         {
             pendingRead = PendingRead.None;
             measurementPanel.Apply(measurement);
             monitorPanel.AddOther(frame, received.HasStx);
         }
-        else if (Environment.TickCount64 <= pendingReadExpires && pendingRead == PendingRead.Wifi &&
+        else if (received.HasStx && Environment.TickCount64 <= pendingReadExpires && pendingRead == PendingRead.Wifi &&
                  DeviceProtocol.TryParseWifiSettings(frame, out wifi, true) && wifi is not null)
         {
             pendingRead = PendingRead.None;
             wifiPanel.Apply(wifi);
             monitorPanel.AddOther($"WIFI_R_ALL,{wifi.Ssid},********,{wifi.ServerIp},{wifi.ServerPort},{(wifi.Dhcp ? 1 : 0)},{wifi.LocalIp},{wifi.Gateway},{wifi.Netmask}", received.HasStx);
         }
-        else if (Environment.TickCount64 <= pendingReadExpires && pendingRead == PendingRead.Measurement &&
+        else if (received.HasStx && Environment.TickCount64 <= pendingReadExpires && pendingRead == PendingRead.Measurement &&
                  DeviceProtocol.TryParseMeasurementSettings(frame, out measurement, true) && measurement is not null)
         {
             pendingRead = PendingRead.None;
@@ -122,6 +122,9 @@ public class MainForm : Form
             monitorPanel.AddOther($"MEAS_R_ALL,{frame}", received.HasStx);
         }
         else if (!received.HasStx) monitorPanel.AddOther(frame, false);
+        else if (frame.StartsWith("WIFI_R_ALL", StringComparison.OrdinalIgnoreCase) ||
+                 frame.StartsWith("MEAS_R_ALL", StringComparison.OrdinalIgnoreCase))
+            monitorPanel.AddOther($"[설정 응답 형식 오류] {frame}");
         else if (DeviceProtocol.IsMeasurementData(frame)) monitorPanel.AddMeasurement(frame);
         else monitorPanel.AddOther(frame);
     }
