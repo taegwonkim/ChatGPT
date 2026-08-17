@@ -20,5 +20,6 @@
     <Compile Update="WifiPanel.cs"><SubType>UserControl</SubType></Compile>
     <Compile Update="MeasurementPanel.cs"><SubType>UserControl</SubType></Compile>
     <Compile Update="MonitorPanel.cs"><SubType>UserControl</SubType></Compile>
+    <Compile Update="AppSettingsStore.cs"><SubType>Code</SubType></Compile>
   </ItemGroup>
 </Project>

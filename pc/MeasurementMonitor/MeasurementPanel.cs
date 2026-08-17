@@ -29,6 +29,8 @@ public class MeasurementPanel : GroupBox
         resistance.Value = Clamp(resistance, value.ResistanceMilliOhm);
         interval.Value = Clamp(interval, value.IntervalSeconds);
     }
+    internal MeasurementSettings CurrentSettings => new(reference.Value, offset.Value,
+        resistance.Value, interval.Value);
 
     private static decimal Clamp(NumericUpDown control, decimal value) =>
         Math.Min(control.Maximum, Math.Max(control.Minimum, value));

@@ -40,6 +40,8 @@ public class WifiPanel : GroupBox
         serverPort.Value = Math.Clamp(value.ServerPort, 1, 65535); dhcp.Checked = value.Dhcp;
         localIp.Text = value.LocalIp; gateway.Text = value.Gateway; netmask.Text = value.Netmask;
     }
+    internal WifiSettings CurrentSettings => new(ssid.Text, password.Text, serverIp.Text,
+        decimal.ToInt32(serverPort.Value), dhcp.Checked, localIp.Text, gateway.Text, netmask.Text);
     private void Write()
     {
         if (!IPAddress.TryParse(serverIp.Text.Trim(), out _) ||

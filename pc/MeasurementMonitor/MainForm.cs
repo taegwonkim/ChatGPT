@@ -15,6 +15,8 @@ public class MainForm : Form
     private readonly ToolTip toolTip = new();
     private PendingRead pendingRead;
     private long pendingReadExpires;
+    private WifiSettings? savedWifi;
+    private MeasurementSettings? savedMeasurement;
 
     public MainForm()
     {
@@ -31,11 +33,21 @@ public class MainForm : Form
         serialPanel.OpenCloseRequested += (_, _) => TogglePort();
         serialPanel.ClearRequested += (_, _) => monitorPanel.ClearLog();
         wifiPanel.ReadRequested += (_, _) => SendRead(PendingRead.Wifi, DeviceProtocol.WifiRead());
-        wifiPanel.WriteRequested += (_, value) => TrySend(() => DeviceProtocol.WifiWrite(value));
+        wifiPanel.WriteRequested += (_, value) => WriteWifi(value);
         measurementPanel.ReadRequested += (_, _) => SendRead(PendingRead.Measurement, DeviceProtocol.MeasurementRead());
-        measurementPanel.WriteRequested += (_, value) => TrySend(() => DeviceProtocol.MeasurementWrite(value));
+        measurementPanel.WriteRequested += (_, value) => WriteMeasurement(value);
         port.DataReceived += PortDataReceived;
-        FormClosing += (_, _) => { if (port.IsOpen) port.Close(); };
+        FormClosing += (_, _) =>
+        {
+            SaveSettings(wifiPanel.CurrentSettings, measurementPanel.CurrentSettings);
+            if (port.IsOpen) port.Close();
+        };
+
+        SavedAppSettings saved = AppSettingsStore.Load();
+        savedWifi = saved.Wifi;
+        savedMeasurement = saved.Measurement;
+        if (savedWifi is not null) wifiPanel.Apply(savedWifi);
+        if (savedMeasurement is not null) measurementPanel.Apply(savedMeasurement);
     }
 
     private void TogglePort()
@@ -60,6 +72,23 @@ public class MainForm : Form
     {
         try { Send(build()); }
         catch (Exception ex) { MessageBox.Show(ex.Message, "입력 오류", MessageBoxButtons.OK, MessageBoxIcon.Warning); }
+    }
+    private void WriteWifi(WifiSettings value)
+    {
+        SaveSettings(value, savedMeasurement);
+        TrySend(() => DeviceProtocol.WifiWrite(value));
+    }
+    private void WriteMeasurement(MeasurementSettings value)
+    {
+        SaveSettings(savedWifi, value);
+        TrySend(() => DeviceProtocol.MeasurementWrite(value));
+    }
+    private void SaveSettings(WifiSettings? wifi, MeasurementSettings? measurement)
+    {
+        savedWifi = wifi;
+        savedMeasurement = measurement;
+        if (!AppSettingsStore.Save(new(wifi, measurement)))
+            monitorPanel.AddOther("[PC 설정 저장 실패] settings.json 파일을 기록할 수 없습니다.");
     }
     private void SendRead(PendingRead kind, byte[] frame)
     {
@@ -99,27 +128,27 @@ public class MainForm : Form
         {
             pendingRead = PendingRead.None;
             wifiPanel.Apply(wifi);
-            monitorPanel.AddOther($"WIFI_R_ALL,{wifi.Ssid},********,{wifi.ServerIp},{wifi.ServerPort},{(wifi.Dhcp ? 1 : 0)},{wifi.LocalIp},{wifi.Gateway},{wifi.Netmask}", received.HasStx);
+            SaveSettings(wifi, savedMeasurement);
         }
         else if (received.HasStx && DeviceProtocol.TryParseMeasurementSettings(frame, out MeasurementSettings? measurement) && measurement is not null)
         {
             pendingRead = PendingRead.None;
             measurementPanel.Apply(measurement);
-            monitorPanel.AddOther(frame, received.HasStx);
+            SaveSettings(savedWifi, measurement);
         }
         else if (received.HasStx && Environment.TickCount64 <= pendingReadExpires && pendingRead == PendingRead.Wifi &&
                  DeviceProtocol.TryParseWifiSettings(frame, out wifi, true) && wifi is not null)
         {
             pendingRead = PendingRead.None;
             wifiPanel.Apply(wifi);
-            monitorPanel.AddOther($"WIFI_R_ALL,{wifi.Ssid},********,{wifi.ServerIp},{wifi.ServerPort},{(wifi.Dhcp ? 1 : 0)},{wifi.LocalIp},{wifi.Gateway},{wifi.Netmask}", received.HasStx);
+            SaveSettings(wifi, savedMeasurement);
         }
         else if (received.HasStx && Environment.TickCount64 <= pendingReadExpires && pendingRead == PendingRead.Measurement &&
                  DeviceProtocol.TryParseMeasurementSettings(frame, out measurement, true) && measurement is not null)
         {
             pendingRead = PendingRead.None;
             measurementPanel.Apply(measurement);
-            monitorPanel.AddOther($"MEAS_R_ALL,{frame}", received.HasStx);
+            SaveSettings(savedWifi, measurement);
         }
         else if (!received.HasStx) monitorPanel.AddOther(frame, false);
         else if (frame.StartsWith("WIFI_R_ALL", StringComparison.OrdinalIgnoreCase) ||
