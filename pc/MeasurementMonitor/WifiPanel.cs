@@ -2,34 +2,17 @@ using System.Net;
 
 namespace MeasurementMonitor;
 
-public class WifiPanel : GroupBox
+public partial class WifiPanel : UserControl
 {
-    private readonly TextBox ssid = new();
-    private readonly TextBox password = new() { UseSystemPasswordChar = true };
-    private readonly TextBox serverIp = new() { Text = "192.168.0.100" };
-    private readonly NumericUpDown serverPort = new() { Minimum = 1, Maximum = 65535, Value = 5000 };
-    private readonly CheckBox dhcp = new() { Text = "DHCP On", Checked = true, AutoSize = true };
-    private readonly TextBox localIp = new() { Text = "192.168.0.50" };
-    private readonly TextBox gateway = new() { Text = "192.168.0.1" };
-    private readonly TextBox netmask = new() { Text = "255.255.255.0" };
     internal event EventHandler? ReadRequested;
     internal event EventHandler<WifiSettings>? WriteRequested;
 
     public WifiPanel()
     {
-        Text = "Wi-Fi 설정";
-        Dock = DockStyle.Fill;
-        Padding = new Padding(10);
-        var grid = Ui.Grid();
-        Ui.AddRow(grid, "AP SSID", ssid, "Password", password);
-        Ui.AddRow(grid, "Server IP", serverIp, "Server Port", serverPort);
-        Ui.AddRow(grid, "DHCP", dhcp, "Local IP", localIp);
-        Ui.AddRow(grid, "Gateway", gateway, "Net Mask", netmask);
-        var buttons = Ui.Buttons(("Read", () => ReadRequested?.Invoke(this, EventArgs.Empty)),
-            ("Write", Write));
-        grid.Controls.Add(buttons, 0, 4); grid.SetColumnSpan(buttons, 4);
-        Controls.Add(grid);
+        InitializeComponent();
         dhcp.CheckedChanged += (_, _) => UpdateDhcpFields();
+        readButton.Click += (_, _) => ReadRequested?.Invoke(this, EventArgs.Empty);
+        writeButton.Click += (_, _) => Write();
         UpdateDhcpFields();
     }
 

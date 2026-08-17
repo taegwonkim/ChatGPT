@@ -18,6 +18,9 @@
     <Compile Update="MainForm.cs"><SubType>Form</SubType></Compile>
     <Compile Update="SerialPanel.cs"><SubType>UserControl</SubType></Compile>
     <Compile Update="WifiPanel.cs"><SubType>UserControl</SubType></Compile>
+    <Compile Update="WifiPanel.Designer.cs">
+      <DependentUpon>WifiPanel.cs</DependentUpon>
+    </Compile>
     <Compile Update="MeasurementPanel.cs"><SubType>UserControl</SubType></Compile>
     <Compile Update="MonitorPanel.cs"><SubType>UserControl</SubType></Compile>
     <Compile Update="AppSettingsStore.cs"><SubType>Code</SubType></Compile>

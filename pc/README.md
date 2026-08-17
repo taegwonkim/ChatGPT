@@ -23,6 +23,8 @@ Visual Studio 2022와 .NET 8용 Windows Forms 프로그램입니다.
 
 Visual Studio의 디자인 화면에서는 Solution Explorer의 `MainForm.cs`를 선택한 후 **Shift+F7** 또는 우클릭 → **디자이너 보기**를 선택합니다. Main Form designer에서 네 panel의 전체 배치를 확인할 수 있습니다. 개별 panel은 `SerialPanel.cs`, `WifiPanel.cs`, `MeasurementPanel.cs`, `MonitorPanel.cs`를 선택해 같은 방법으로 designer를 열 수 있습니다. 이 프로젝트는 각 파일에 Visual Studio용 `SubType` metadata를 지정했기 때문에 Solution Explorer에서 panel component로 인식됩니다.
 
+`WifiPanel`은 Visual Studio WinForms designer가 편집할 수 있는 표준 `UserControl` + `WifiPanel.Designer.cs` 구조입니다. Solution Explorer에서 `WifiPanel.cs` 왼쪽 화살표를 펼치면 `WifiPanel.Designer.cs`가 종속 파일로 보입니다. **반드시 `WifiPanel.cs`를 선택한 상태에서 Shift+F7**을 누르십시오. `WifiPanel.Designer.cs` 자체를 열거나 코드 보기 상태에서는 도구 상자 안내 문구만 보일 수 있습니다.
+
 > 이 UI는 `.Designer.cs`의 고정 좌표 대신 각 panel 생성자에서 `TableLayoutPanel`, `FlowLayoutPanel`, `Dock`을 사용해 구성합니다. 따라서 designer 화면을 열었을 때 코드가 실행되어 panel이 렌더링됩니다. designer cache 때문에 빈 화면이 보이면 먼저 솔루션을 빌드한 뒤 designer를 닫았다 다시 열고, 그래도 보이지 않으면 `F5` 실행 화면에서 확인하십시오.
 
 ## 화면 구성
