@@ -59,7 +59,7 @@ Write frame은 다음과 같습니다.
 
 ```text
 <STX>WIFI_W_ALL,ssid,password,serverIp,serverPort,dhcp,localIp,gateway,netmask<CR><LF>
-<STX>MEAS_W_ALL,referenceMv,offsetMv,resistanceMilliOhm,intervalSeconds<CR><LF>
+<STX>MEAS_W_ALL,referenceMv,offsetMv,resistanceMilliOhm,intervalSeconds,rs485Only<CR><LF>
 ```
 
 수신 parser는 여러 serial read에 나뉘어 들어온 frame과 한 번에 연속 수신된 여러 frame을 모두 처리하며, 비정상 데이터는 다음 STX에서 다시 동기화합니다. MCU가 `WIFI_W_ALL,...`/`WIFI_R_ALL,...` 또는 `MEAS_W_ALL,...`/`MEAS_R_ALL,...` 설정 frame을 응답하면 해당 panel 입력값도 갱신합니다.
@@ -72,12 +72,12 @@ Wi-Fi 및 Measurement의 Read/Write 송신과 설정 응답은 **모두 첫 byte
 
 ```text
 <STX>ssid,password,serverIp,serverPort,dhcp,localIp,gateway,netmask<CR><LF>
-<STX>reference,offset,resistance,intervalTime<CR><LF>
+<STX>reference,offset,resistance,intervalTime,rs485Only<CR><LF>
 ```
 
-Wi-Fi Read를 누른 뒤 첫 번째 8-field STX frame은 Wi-Fi 설정 panel에, Measurement Read를 누른 뒤 첫 번째 4-field STX frame은 Measurement 설정 panel에 표시합니다. DHCP는 `0=Off`, `1=On`으로 적용합니다. command 없는 응답을 놓치지 않도록 최소 5초 동안 해당 Read 응답을 기다리며, 정상 설정 응답은 아래 MCU 수신 데이터 창에 출력하지 않습니다.
+Wi-Fi Read를 누른 뒤 첫 번째 8-field STX frame은 Wi-Fi 설정 panel에, Measurement Read를 누른 뒤 첫 번째 5-field STX frame은 Measurement 설정 panel에 표시합니다. DHCP와 RS485_ONLY는 `0=Off`, `1=On`으로 적용합니다. command 없는 응답을 놓치지 않도록 최소 5초 동안 해당 Read 응답을 기다리며, 정상 설정 응답은 아래 MCU 수신 데이터 창에 출력하지 않습니다.
 
-Measurement 설정 응답은 command 없이 `reference,offset,resistance,intervalTime` 네 숫자만 올라오므로 Read 대기 시간과 관계없이 **4-field 숫자 STX frame을 먼저 Measurement 설정 응답으로 판정**합니다. 따라서 이 frame은 하단 측정값 창으로 전달되지 않습니다. 실제 측정 데이터는 `<STX>DC_...<CR><LF>` 식별자를 사용해야 합니다.
+Measurement 설정의 마지막 항목에 **RS485_ONLY**를 추가했습니다. ComboBox 기본값은 OFF이며 Write 시 OFF는 `0`, ON은 `1`을 마지막 field로 전송합니다. Read 응답의 마지막 `0/1`도 ComboBox의 OFF/ON으로 표시합니다. 설정 응답은 command 없이 `reference,offset,resistance,intervalTime,rs485Only` 다섯 값으로 올라오므로 Read 대기 시간과 관계없이 **5-field 숫자 STX frame을 먼저 Measurement 설정 응답으로 판정**합니다. 따라서 이 frame은 하단 측정값 창으로 전달되지 않습니다. 이전 4-field 응답은 RS485_ONLY=OFF로 호환 처리하며, 실제 측정 데이터는 `<STX>DC_...<CR><LF>` 식별자를 사용해야 합니다.
 
 Read 응답이 정상적으로 파싱되면 값은 Wi-Fi 또는 Measurement 설정 영역에만 표시되며 **기타 MCU 데이터 / 상태** 창에는 중복 출력하지 않습니다. Read로 받은 값, Write 버튼으로 보낸 값, 프로그램 종료 시 화면에 있던 값은 `%LOCALAPPDATA%\STM32MeasurementMonitor\settings.json`에 저장되고 다음 실행 시 자동 복원됩니다. Serial Port의 COM port, baudrate, timeout도 Open 성공 시와 프로그램 종료 시 같은 파일에 저장되며 다음 실행 시 자동 선택됩니다. 저장했던 COM port가 현재 연결되어 있지 않아도 ComboBox에 마지막 선택값을 유지하므로 장치를 다시 연결한 뒤 사용할 수 있습니다. 저장 파일에는 Wi-Fi password도 포함되므로 해당 Windows 사용자 계정의 파일 접근 권한을 적절히 관리하십시오.
 

@@ -22,7 +22,8 @@ internal static class DeviceProtocol
         value.ReferenceMv.ToString(CultureInfo.InvariantCulture),
         value.OffsetMv.ToString(CultureInfo.InvariantCulture),
         value.ResistanceMilliOhm.ToString(CultureInfo.InvariantCulture),
-        value.IntervalSeconds.ToString(CultureInfo.InvariantCulture)));
+        value.IntervalSeconds.ToString(CultureInfo.InvariantCulture),
+        value.Rs485Only ? "1" : "0"));
 
     internal static byte[] Frame(string payload) =>
         [Stx, .. Encoding.ASCII.GetBytes(payload), (byte)'\r', (byte)'\n'];
@@ -44,13 +45,20 @@ internal static class DeviceProtocol
         bool allowPayloadOnly = false)
     {
         value = null;
-        if (!TryGetPayload(frame, "MEAS_R_ALL", "MEAS_W_ALL", allowPayloadOnly,
-                4, out string[] fields) ||
+        bool validFields = TryGetPayload(frame, "MEAS_R_ALL", "MEAS_W_ALL",
+            allowPayloadOnly, 5, out string[] fields);
+        if (!validFields)
+            validFields = TryGetPayload(frame, "MEAS_R_ALL", "MEAS_W_ALL",
+                allowPayloadOnly, 4, out fields); // 이전 저장 장치 응답 호환
+        if (!validFields ||
             !decimal.TryParse(CleanValue(fields[0]), NumberStyles.Number, CultureInfo.InvariantCulture, out decimal reference) ||
             !decimal.TryParse(CleanValue(fields[1]), NumberStyles.Number, CultureInfo.InvariantCulture, out decimal offset) ||
             !decimal.TryParse(CleanValue(fields[2]), NumberStyles.Number, CultureInfo.InvariantCulture, out decimal resistance) ||
             !decimal.TryParse(CleanValue(fields[3]), NumberStyles.Number, CultureInfo.InvariantCulture, out decimal interval)) return false;
-        value = new(reference, offset, resistance, interval);
+        bool rs485Only = false;
+        if (fields.Length == 5 && !TryParseBoolean(CleanValue(fields[4]), out rs485Only))
+            return false;
+        value = new(reference, offset, resistance, interval, rs485Only);
         return true;
     }
 
@@ -124,7 +132,7 @@ internal sealed record WifiSettings(string Ssid, string Password, string ServerI
     int ServerPort, bool Dhcp, string LocalIp, string Gateway, string Netmask);
 
 internal sealed record MeasurementSettings(decimal ReferenceMv, decimal OffsetMv,
-    decimal ResistanceMilliOhm, decimal IntervalSeconds);
+    decimal ResistanceMilliOhm, decimal IntervalSeconds, bool Rs485Only = false);
 
 internal readonly record struct ReceivedFrame(string Payload, bool HasStx);
 

@@ -9,6 +9,7 @@ partial class MeasurementPanel
     private NumericUpDown offset = null!;
     private NumericUpDown resistance = null!;
     private NumericUpDown interval = null!;
+    private ComboBox rs485Only = null!;
     private Button readButton = null!;
     private Button writeButton = null!;
 
@@ -23,18 +24,24 @@ partial class MeasurementPanel
         components = new System.ComponentModel.Container(); measurementGroup = new GroupBox(); grid = new TableLayoutPanel();
         reference = Number(0, 1000000, 1, 0); offset = Number(-1000000, 1000000, 1, 0);
         resistance = Number(0, 100000000, 3, 0); interval = Number(0.001M, 86400, 3, 1);
-        readButton = new Button(); writeButton = new Button(); measurementGroup.SuspendLayout(); grid.SuspendLayout(); SuspendLayout();
+        rs485Only = new ComboBox(); readButton = new Button(); writeButton = new Button(); measurementGroup.SuspendLayout(); grid.SuspendLayout(); SuspendLayout();
 
-        grid.ColumnCount = 4; grid.RowCount = 3; grid.Dock = DockStyle.Fill;
+        grid.ColumnCount = 4; grid.RowCount = 4; grid.Dock = DockStyle.Fill;
         grid.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 120F)); grid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
         grid.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 140F)); grid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
         grid.Controls.Add(MakeLabel("Reference (mV)"), 0, 0); grid.Controls.Add(reference, 1, 0);
         grid.Controls.Add(MakeLabel("Offset (mV)"), 2, 0); grid.Controls.Add(offset, 3, 0);
         grid.Controls.Add(MakeLabel("Resistance (mΩ)"), 0, 1); grid.Controls.Add(resistance, 1, 1);
         grid.Controls.Add(MakeLabel("Interval Time (sec)"), 2, 1); grid.Controls.Add(interval, 3, 1);
+        grid.Controls.Add(MakeLabel("RS485_ONLY"), 0, 2); grid.Controls.Add(rs485Only, 1, 2);
+        rs485Only.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+        rs485Only.DropDownStyle = ComboBoxStyle.DropDownList;
+        rs485Only.Items.AddRange(new object[] { "OFF", "ON" });
+        rs485Only.Name = "rs485Only";
+        rs485Only.SelectedIndex = 0;
         readButton.AutoSize = true; readButton.Anchor = AnchorStyles.None; readButton.Text = "Read"; readButton.Name = "readButton";
         writeButton.AutoSize = true; writeButton.Anchor = AnchorStyles.None; writeButton.Text = "Write"; writeButton.Name = "writeButton";
-        grid.Controls.Add(readButton, 1, 2); grid.Controls.Add(writeButton, 2, 2);
+        grid.Controls.Add(readButton, 1, 3); grid.Controls.Add(writeButton, 2, 3);
         measurementGroup.Controls.Add(grid); measurementGroup.Dock = DockStyle.Fill; measurementGroup.Padding = new Padding(10);
         measurementGroup.Text = "Measurement 설정"; measurementGroup.Name = "measurementGroup";
         Controls.Add(measurementGroup); AutoScaleMode = AutoScaleMode.Font; Name = "MeasurementPanel"; Size = new Size(520, 230);

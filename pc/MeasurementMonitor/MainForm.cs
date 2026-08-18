@@ -145,7 +145,7 @@ public partial class MainForm : Form
             wifiPanel.Apply(wifi);
             SaveSettings(wifi, savedMeasurement, savedSerial, CurrentLayout);
         }
-        // Measurement 설정 응답은 command 없이 4개 숫자 값만 오므로 DC_ 측정값
+        // Measurement 설정 응답은 command 없이 5개 숫자 값만 오므로 DC_ 측정값
         // 분류보다 먼저 설정 payload로 판정해야 합니다.
         else if (received.HasStx &&
                  DeviceProtocol.TryParseMeasurementSettings(frame,
