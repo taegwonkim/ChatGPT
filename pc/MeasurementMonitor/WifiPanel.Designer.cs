@@ -134,13 +134,19 @@ partial class WifiPanel
         netmask.Name = "netmask";
         netmask.Text = "255.255.255.0";
         readButton.Anchor = AnchorStyles.None;
-        readButton.AutoSize = true;
+        readButton.AutoSize = false;
+        readButton.Font = new Font("Segoe UI", 10F, FontStyle.Regular, GraphicsUnit.Point);
         readButton.Name = "readButton";
+        readButton.Size = new Size(90, 32);
         readButton.Text = "Read";
+        readButton.UseVisualStyleBackColor = true;
         writeButton.Anchor = AnchorStyles.None;
-        writeButton.AutoSize = true;
+        writeButton.AutoSize = false;
+        writeButton.Font = new Font("Segoe UI", 10F, FontStyle.Regular, GraphicsUnit.Point);
         writeButton.Name = "writeButton";
+        writeButton.Size = new Size(90, 32);
         writeButton.Text = "Write";
+        writeButton.UseVisualStyleBackColor = true;
 
         AutoScaleDimensions = new SizeF(7F, 15F);
         AutoScaleMode = AutoScaleMode.Font;

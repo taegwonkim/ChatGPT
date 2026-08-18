@@ -39,8 +39,14 @@ partial class MeasurementPanel
         rs485Only.Items.AddRange(new object[] { "OFF", "ON" });
         rs485Only.Name = "rs485Only";
         rs485Only.SelectedIndex = 0;
-        readButton.AutoSize = true; readButton.Anchor = AnchorStyles.None; readButton.Text = "Read"; readButton.Name = "readButton";
-        writeButton.AutoSize = true; writeButton.Anchor = AnchorStyles.None; writeButton.Text = "Write"; writeButton.Name = "writeButton";
+        readButton.AutoSize = false; readButton.Anchor = AnchorStyles.None;
+        readButton.Font = new Font("Segoe UI", 10F, FontStyle.Regular, GraphicsUnit.Point);
+        readButton.Size = new Size(90, 32); readButton.Text = "Read"; readButton.Name = "readButton";
+        readButton.UseVisualStyleBackColor = true;
+        writeButton.AutoSize = false; writeButton.Anchor = AnchorStyles.None;
+        writeButton.Font = new Font("Segoe UI", 10F, FontStyle.Regular, GraphicsUnit.Point);
+        writeButton.Size = new Size(90, 32); writeButton.Text = "Write"; writeButton.Name = "writeButton";
+        writeButton.UseVisualStyleBackColor = true;
         grid.Controls.Add(readButton, 1, 3); grid.Controls.Add(writeButton, 2, 3);
         measurementGroup.Controls.Add(grid); measurementGroup.Dock = DockStyle.Fill; measurementGroup.Padding = new Padding(10);
         measurementGroup.Text = "Measurement 설정"; measurementGroup.Name = "measurementGroup";
