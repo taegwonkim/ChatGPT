@@ -16,7 +16,24 @@ public partial class WifiPanel : UserControl
         UpdateDhcpFields();
     }
 
-    private void UpdateDhcpFields() => localIp.Enabled = gateway.Enabled = netmask.Enabled = !dhcp.Checked;
+    private void UpdateDhcpFields()
+    {
+        bool readOnly = dhcp.Checked;
+        SetStaticIpFieldState(localIp, readOnly);
+        SetStaticIpFieldState(gateway, readOnly);
+        SetStaticIpFieldState(netmask, readOnly);
+    }
+
+    private static void SetStaticIpFieldState(TextBox field, bool readOnly)
+    {
+        // Enabled=false는 Windows theme에서 테두리까지 흐리게 그리므로 사용하지 않습니다.
+        field.Enabled = true;
+        field.ReadOnly = readOnly;
+        field.TabStop = !readOnly;
+        field.BorderStyle = BorderStyle.FixedSingle;
+        field.BackColor = SystemColors.Window;
+        field.ForeColor = readOnly ? SystemColors.GrayText : SystemColors.WindowText;
+    }
     internal void Apply(WifiSettings value)
     {
         ssid.Text = value.Ssid; password.Text = value.Password; serverIp.Text = value.ServerIp;

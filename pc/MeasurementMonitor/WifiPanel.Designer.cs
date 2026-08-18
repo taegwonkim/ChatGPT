@@ -122,12 +122,15 @@ partial class WifiPanel
         dhcp.Name = "dhcp";
         dhcp.Text = "DHCP On";
         localIp.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+        localIp.BorderStyle = BorderStyle.FixedSingle;
         localIp.Name = "localIp";
         localIp.Text = "192.168.0.50";
         gateway.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+        gateway.BorderStyle = BorderStyle.FixedSingle;
         gateway.Name = "gateway";
         gateway.Text = "192.168.0.1";
         netmask.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+        netmask.BorderStyle = BorderStyle.FixedSingle;
         netmask.Name = "netmask";
         netmask.Text = "255.255.255.0";
         readButton.Anchor = AnchorStyles.None;
