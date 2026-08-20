@@ -6,12 +6,23 @@ public partial class MonitorPanel : UserControl
     {
         InitializeComponent();
     }
-    internal void ClearLog() { measurementLog.Clear(); otherLog.Clear(); status.Text = "STATUS: -"; }
+    internal void ClearLog()
+    {
+        measurementLog.Clear();
+        otherLog.Clear();
+        status.Text = "STATUS: -";
+        macAddress.Text = "MAC Address: -";
+    }
     internal void AddFrame(string frame) => AddOther(frame);
     internal void AddMeasurement(string frame) => Append(measurementLog, frame);
     internal void AddOther(string frame, bool hasStx = true)
     {
         if (frame.StartsWith("STATUS", StringComparison.OrdinalIgnoreCase)) status.Text = frame;
+        if (frame.StartsWith("MAC_", StringComparison.OrdinalIgnoreCase))
+        {
+            string value = frame[4..].Trim();
+            macAddress.Text = value.Length == 0 ? "MAC Address: -" : $"MAC Address: {value}";
+        }
         Append(otherLog, hasStx ? frame : $"[RAW] {frame}");
     }
     private void Append(RichTextBox target, string frame)

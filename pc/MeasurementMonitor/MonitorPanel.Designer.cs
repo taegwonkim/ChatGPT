@@ -10,6 +10,7 @@ partial class MonitorPanel
     private RichTextBox otherLog = null!;
     private CheckBox autoScroll = null!;
     private Label status = null!;
+    private Label macAddress = null!;
 
     protected override void Dispose(bool disposing)
     {
@@ -21,12 +22,17 @@ partial class MonitorPanel
     {
         components = new System.ComponentModel.Container(); monitorGroup = new GroupBox(); columns = new TableLayoutPanel();
         top = new FlowLayoutPanel(); measurementLog = LogBox(); otherLog = LogBox();
-        autoScroll = new CheckBox(); status = new Label(); monitorGroup.SuspendLayout(); columns.SuspendLayout(); top.SuspendLayout(); SuspendLayout();
+        autoScroll = new CheckBox(); status = new Label(); macAddress = new Label(); monitorGroup.SuspendLayout(); columns.SuspendLayout(); top.SuspendLayout(); SuspendLayout();
 
         autoScroll.AutoSize = true; autoScroll.Checked = true; autoScroll.CheckState = CheckState.Checked;
         autoScroll.Name = "autoScroll"; autoScroll.Text = "Auto scroll";
-        status.AutoSize = true; status.Name = "status"; status.Padding = new Padding(5); status.Text = "STATUS: -";
-        top.AutoSize = true; top.Dock = DockStyle.Top; top.Controls.Add(autoScroll); top.Controls.Add(status);
+        status.AutoSize = true; status.BackColor = Color.White; status.ForeColor = Color.Black;
+        status.Margin = new Padding(12, 3, 3, 3); status.Name = "status"; status.Padding = new Padding(5); status.Text = "STATUS: -";
+        macAddress.AutoSize = true; macAddress.BackColor = Color.White; macAddress.ForeColor = Color.Black;
+        macAddress.Margin = new Padding(20, 3, 3, 3); macAddress.Name = "macAddress";
+        macAddress.Padding = new Padding(5); macAddress.Text = "MAC Address: -";
+        top.AutoSize = true; top.BackColor = Color.White; top.Dock = DockStyle.Top;
+        top.Controls.Add(autoScroll); top.Controls.Add(status); top.Controls.Add(macAddress);
         columns.ColumnCount = 2; columns.RowCount = 2; columns.Dock = DockStyle.Fill;
         columns.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F)); columns.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
         columns.RowStyles.Add(new RowStyle(SizeType.AutoSize)); columns.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));

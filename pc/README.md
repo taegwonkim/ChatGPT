@@ -56,6 +56,8 @@ Wi-Fi와 Measurement의 Read/Write 버튼은 기본적으로 `Size=90,32`, `Font
 - **Measurement 설정**: Reference, Offset, Resistance, Interval Time의 Read/Write
 - **MCU 수신 데이터**: 왼쪽에는 숫자 CSV 측정값, 오른쪽에는 STATUS·설정 응답·기타 frame을 분리 표시하며 auto scroll 지원
 
+Monitor 상단에는 STATUS 오른쪽에 간격을 두고 MAC Address가 표시됩니다. MCU가 `<STX>MAC_mac address<CR><LF>` 형식으로 전송하면 `MAC_` 뒤의 값을 `MAC Address: ...`에 표시합니다. 예를 들어 `<STX>MAC_AA:BB:CC:DD:EE:FF<CR><LF>`는 `MAC Address: AA:BB:CC:DD:EE:FF`로 표시됩니다. STATUS와 MAC Address label 및 상단 영역은 모두 흰색 배경을 사용하며, Clear 버튼은 두 표시를 `-`로 초기화합니다.
+
 Read 버튼과 Write 버튼은 서로 다른 command를 전송합니다.
 
 ```text
