@@ -58,6 +58,10 @@ Wi-Fi와 Measurement의 Read/Write 버튼은 기본적으로 `Size=90,32`, `Font
 
 Monitor 상단에는 STATUS 오른쪽에 간격을 두고 MAC Address가 표시됩니다. MCU가 `<STX>MAC_mac address<CR><LF>` 형식으로 전송하면 `MAC_` 뒤의 값을 `MAC Address: ...`에 표시합니다. 예를 들어 `<STX>MAC_AA:BB:CC:DD:EE:FF<CR><LF>`는 `MAC Address: AA:BB:CC:DD:EE:FF`로 표시됩니다. STATUS와 MAC Address label 및 상단 영역은 모두 흰색 배경을 사용하며, Clear 버튼은 두 표시를 `-`로 초기화합니다.
 
+MAC Address의 `Location`을 직접 바꾸면 원위치로 돌아가는 이유는 기존 `FlowLayoutPanel`이 자식 위치를 자동 계산했기 때문입니다. 상단을 `TableLayoutPanel(headerLayout)`으로 변경하고 STATUS와 MAC 사이에 폭 `80px`의 빈 열을 두었습니다. 간격을 바꾸려면 MonitorPanel Designer에서 `headerLayout`을 선택하고 **Edit Rows and Columns → 세 번째 열(Absolute)의 Width**를 변경하십시오. MAC label의 `Location`을 직접 수정할 필요가 없습니다.
+
+Designer에서 `Math.Min(control.Maximum, Math.Max(control.Minimum, value))`가 표시된 것은 저장된 Measurement 값이 NumericUpDown 범위를 벗어나지 않도록 최소/최대 범위로 제한하던 `Clamp()` 코드 위치가 Designer 오류/호출 스택에 나타난 것입니다. 계산식 자체는 최소값보다 작으면 Minimum, 최대값보다 크면 Maximum을 선택한다는 뜻입니다. Designer가 MainForm을 미리 생성하면서 PC 저장 설정을 읽고 `MeasurementPanel.Apply()`를 실행한 것이 원인이 될 수 있어, 디자인 모드에서는 설정 로드와 통신 이벤트 연결을 실행하지 않도록 변경했습니다. Clamp도 동일한 동작을 명시적인 if 문으로 바꿔 오류 위치를 이해하기 쉽게 했습니다.
+
 Read 버튼과 Write 버튼은 서로 다른 command를 전송합니다.
 
 ```text

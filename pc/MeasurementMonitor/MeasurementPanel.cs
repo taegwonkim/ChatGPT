@@ -25,7 +25,11 @@ public partial class MeasurementPanel : UserControl
     internal MeasurementSettings CurrentSettings => new(reference.Value, offset.Value,
         resistance.Value, interval.Value, rs485Only.SelectedIndex == 1);
 
-    private static decimal Clamp(NumericUpDown control, decimal value) =>
-        Math.Min(control.Maximum, Math.Max(control.Minimum, value));
+    private static decimal Clamp(NumericUpDown control, decimal value)
+    {
+        if (value < control.Minimum) return control.Minimum;
+        if (value > control.Maximum) return control.Maximum;
+        return value;
+    }
 
 }

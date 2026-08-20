@@ -20,6 +20,11 @@ public partial class MainForm : Form
     {
         InitializeComponent();
 
+        // WinForms Designer가 Form을 생성할 때 사용자 설정 파일/통신 로직을 실행하지 않습니다.
+        if (System.ComponentModel.LicenseManager.UsageMode ==
+            System.ComponentModel.LicenseUsageMode.Designtime)
+            return;
+
         serialPanel.OpenCloseRequested += (_, _) => TogglePort();
         serialPanel.ClearRequested += (_, _) => monitorPanel.ClearLog();
         wifiPanel.ReadRequested += (_, _) => SendRead(PendingRead.Wifi, DeviceProtocol.WifiRead());
