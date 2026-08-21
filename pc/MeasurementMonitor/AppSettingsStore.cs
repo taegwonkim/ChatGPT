@@ -3,7 +3,7 @@ using System.Text.Json;
 namespace MeasurementMonitor;
 
 internal sealed record SerialSettings(string PortName, int BaudRate, int Timeout);
-internal sealed record LayoutSettings(int SettingsHeight, int WifiWidth);
+internal sealed record LayoutSettings(int SettingsHeight, int WifiWidth, int MonitorWidth = 0);
 internal sealed record SavedAppSettings(WifiSettings? Wifi, MeasurementSettings? Measurement,
     SerialSettings? Serial, LayoutSettings? Layout);
 

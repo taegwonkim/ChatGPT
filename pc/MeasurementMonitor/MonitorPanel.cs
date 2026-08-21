@@ -12,6 +12,16 @@ public partial class MonitorPanel : UserControl
         SetValueStyle(status);
         SetValueStyle(macAddress);
     }
+    internal int DataSplitterDistance
+    {
+        get => dataSplit.SplitterDistance;
+        set
+        {
+            int maximum = Math.Max(dataSplit.Panel1MinSize,
+                dataSplit.ClientSize.Width - dataSplit.Panel2MinSize - dataSplit.SplitterWidth);
+            dataSplit.SplitterDistance = Math.Clamp(value, dataSplit.Panel1MinSize, maximum);
+        }
+    }
     private static void SetValueStyle(Label valueLabel)
     {
         valueLabel.BackColor = Color.White;

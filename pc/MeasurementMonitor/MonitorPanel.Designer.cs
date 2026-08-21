@@ -4,7 +4,7 @@ partial class MonitorPanel
 {
     private System.ComponentModel.IContainer? components;
     private GroupBox monitorGroup = null!;
-    private TableLayoutPanel columns = null!;
+    private SplitContainer dataSplit = null!;
     private TableLayoutPanel headerLayout = null!;
     private RichTextBox measurementLog = null!;
     private RichTextBox otherLog = null!;
@@ -13,6 +13,8 @@ partial class MonitorPanel
     private Label status = null!;
     private Label macAddressCaption = null!;
     private Label macAddress = null!;
+    private Label measurementTitle = null!;
+    private Label otherTitle = null!;
 
     protected override void Dispose(bool disposing)
     {
@@ -22,10 +24,13 @@ partial class MonitorPanel
 
     private void InitializeComponent()
     {
-        components = new System.ComponentModel.Container(); monitorGroup = new GroupBox(); columns = new TableLayoutPanel();
+        components = new System.ComponentModel.Container(); monitorGroup = new GroupBox(); dataSplit = new SplitContainer();
         headerLayout = new TableLayoutPanel(); measurementLog = LogBox(); otherLog = LogBox();
         autoScroll = new CheckBox(); statusCaption = new Label(); status = new Label();
-        macAddressCaption = new Label(); macAddress = new Label(); monitorGroup.SuspendLayout(); columns.SuspendLayout(); headerLayout.SuspendLayout(); SuspendLayout();
+        macAddressCaption = new Label(); macAddress = new Label(); measurementTitle = new Label(); otherTitle = new Label();
+        monitorGroup.SuspendLayout(); ((System.ComponentModel.ISupportInitialize)dataSplit).BeginInit();
+        dataSplit.Panel1.SuspendLayout(); dataSplit.Panel2.SuspendLayout(); dataSplit.SuspendLayout();
+        headerLayout.SuspendLayout(); SuspendLayout();
 
         autoScroll.AutoSize = true; autoScroll.Checked = true; autoScroll.CheckState = CheckState.Checked;
         autoScroll.Name = "autoScroll"; autoScroll.Text = "Auto scroll";
@@ -54,17 +59,24 @@ partial class MonitorPanel
         headerLayout.Controls.Add(macAddress, 5, 0); headerLayout.Dock = DockStyle.Top;
         headerLayout.Name = "headerLayout"; headerLayout.RowCount = 1;
         headerLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        columns.ColumnCount = 2; columns.RowCount = 2; columns.Dock = DockStyle.Fill;
-        columns.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F)); columns.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
-        columns.RowStyles.Add(new RowStyle(SizeType.AutoSize)); columns.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-        columns.Controls.Add(new Label { Text = "측정값", AutoSize = true }, 0, 0);
-        columns.Controls.Add(new Label { Text = "기타 MCU 데이터 / 상태", AutoSize = true }, 1, 0);
-        columns.Controls.Add(measurementLog, 0, 1); columns.Controls.Add(otherLog, 1, 1);
-        monitorGroup.Controls.Add(columns); monitorGroup.Controls.Add(headerLayout); monitorGroup.Dock = DockStyle.Fill;
+        measurementTitle.AutoSize = true; measurementTitle.Dock = DockStyle.Top;
+        measurementTitle.Name = "measurementTitle"; measurementTitle.Text = "측정값";
+        otherTitle.AutoSize = true; otherTitle.Dock = DockStyle.Top;
+        otherTitle.Name = "otherTitle"; otherTitle.Text = "기타 MCU 데이터 / 상태";
+        dataSplit.Dock = DockStyle.Fill; dataSplit.Name = "dataSplit";
+        dataSplit.Panel1.Controls.Add(measurementLog); dataSplit.Panel1.Controls.Add(measurementTitle);
+        dataSplit.Panel1MinSize = 150;
+        dataSplit.Panel2.Controls.Add(otherLog); dataSplit.Panel2.Controls.Add(otherTitle);
+        dataSplit.Panel2MinSize = 150; dataSplit.Size = new Size(860, 280);
+        dataSplit.SplitterDistance = 428; dataSplit.SplitterWidth = 6; dataSplit.TabIndex = 1;
+        monitorGroup.Controls.Add(dataSplit); monitorGroup.Controls.Add(headerLayout); monitorGroup.Dock = DockStyle.Fill;
         monitorGroup.Padding = new Padding(10); monitorGroup.Text = "MCU 수신 데이터"; monitorGroup.Name = "monitorGroup";
         Controls.Add(monitorGroup); AutoScaleMode = AutoScaleMode.Font; Name = "MonitorPanel"; Size = new Size(880, 340);
 
-        headerLayout.ResumeLayout(false); headerLayout.PerformLayout(); columns.ResumeLayout(false); columns.PerformLayout();
+        headerLayout.ResumeLayout(false); headerLayout.PerformLayout();
+        dataSplit.Panel1.ResumeLayout(false); dataSplit.Panel1.PerformLayout();
+        dataSplit.Panel2.ResumeLayout(false); dataSplit.Panel2.PerformLayout();
+        ((System.ComponentModel.ISupportInitialize)dataSplit).EndInit(); dataSplit.ResumeLayout(false);
         monitorGroup.ResumeLayout(false); monitorGroup.PerformLayout(); ResumeLayout(false);
     }
 

@@ -104,12 +104,14 @@ public partial class MainForm : Form
             monitorPanel.AddOther("[PC 설정 저장 실패] settings.json 파일을 기록할 수 없습니다.");
     }
     private LayoutSettings CurrentLayout => new(contentSplit.SplitterDistance,
-        settingsSplit.SplitterDistance);
+        settingsSplit.SplitterDistance, monitorPanel.DataSplitterDistance);
     private void ApplySavedLayout()
     {
         if (savedLayout is null) return;
         contentSplit.SplitterDistance = ClampSplitter(contentSplit, savedLayout.SettingsHeight);
         settingsSplit.SplitterDistance = ClampSplitter(settingsSplit, savedLayout.WifiWidth);
+        if (savedLayout.MonitorWidth > 0)
+            monitorPanel.DataSplitterDistance = savedLayout.MonitorWidth;
     }
     private static int ClampSplitter(SplitContainer split, int value)
     {
