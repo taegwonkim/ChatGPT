@@ -10,18 +10,18 @@ public partial class MonitorPanel : UserControl
     {
         measurementLog.Clear();
         otherLog.Clear();
-        status.Text = "STATUS: -";
-        macAddress.Text = "MAC Address: -";
+        status.Text = "-";
+        macAddress.Text = "-";
     }
     internal void AddFrame(string frame) => AddOther(frame);
     internal void AddMeasurement(string frame) => Append(measurementLog, frame);
     internal void AddOther(string frame, bool hasStx = true)
     {
-        if (frame.StartsWith("STATUS", StringComparison.OrdinalIgnoreCase)) status.Text = frame;
+        if (frame.StartsWith("STATUS", StringComparison.OrdinalIgnoreCase))
+            status.Text = ExtractValue(frame, "STATUS");
         if (frame.StartsWith("MAC_", StringComparison.OrdinalIgnoreCase))
         {
-            string value = frame[4..].Trim();
-            macAddress.Text = value.Length == 0 ? "MAC Address: -" : $"MAC Address: {value}";
+            macAddress.Text = ExtractValue(frame, "MAC");
         }
         Append(otherLog, hasStx ? frame : $"[RAW] {frame}");
     }
@@ -29,5 +29,10 @@ public partial class MonitorPanel : UserControl
     {
         target.AppendText($"[{DateTime.Now:HH:mm:ss.fff}] {frame}{Environment.NewLine}");
         if (autoScroll.Checked) { target.SelectionStart = target.TextLength; target.ScrollToCaret(); }
+    }
+    private static string ExtractValue(string frame, string prefix)
+    {
+        string value = frame[prefix.Length..].TrimStart('_', ',', ':', '=', ' ').Trim();
+        return value.Length == 0 ? "-" : value;
     }
 }
