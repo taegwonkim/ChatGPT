@@ -28,5 +28,7 @@
     <Compile Update="MonitorPanel.cs"><SubType>UserControl</SubType></Compile>
     <Compile Update="MonitorPanel.Designer.cs"><DependentUpon>MonitorPanel.cs</DependentUpon></Compile>
     <Compile Update="AppSettingsStore.cs"><SubType>Code</SubType></Compile>
+    <Compile Update="RuntimeLayoutManager.cs"><SubType>Code</SubType></Compile>
+    <Compile Update="LayoutEditorForm.cs"><SubType>Form</SubType></Compile>
   </ItemGroup>
 </Project>

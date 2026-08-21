@@ -35,6 +35,12 @@ Main Form에서 Wi-Fi/Measurement panel은 좌우 `SplitContainer`, 설정 영�
 
 Designer에서 초기 크기를 바꾸려면 `MainForm.cs`의 Designer를 열고 splitter를 드래그하거나, Properties 창에서 `settingsSplit.SplitterDistance`(Wi-Fi 영역 너비)와 `contentSplit.SplitterDistance`(설정 영역 높이)를 변경하십시오. Serial 영역 높이는 Main Form Designer에서 `serialPanel`을 선택하고 `Size → Height`를 변경합니다. 개별 `WifiPanel.cs`나 `MeasurementPanel.cs`에서 `Size`를 바꿔도 Main Form에서는 `Dock=Fill`과 SplitContainer가 실제 크기를 결정하므로 원래처럼 보일 수 있습니다. 즉, 실행 화면의 panel 비율은 개별 panel의 `Size`가 아니라 Main Form의 두 `SplitterDistance`로 조정해야 합니다.
 
+### 실행 중 화면 배치 편집
+
+Serial Port 영역의 **화면 배치** 버튼을 누르면 Label, TextBox, ComboBox, Button, CheckBox, NumericUpDown 및 각 UserControl panel을 선택할 수 있는 편집기가 열립니다. 항목을 선택하고 **자유 배치**를 누르면 기존 TableLayout/Dock에서 분리되어 PropertyGrid의 `Location`, `Size`, `Font`, `BackColor`, `ForeColor`, `Anchor` 등을 직접 변경할 수 있습니다. **저장**을 누르면 `%LOCALAPPDATA%\STM32MeasurementMonitor\control-layout.json`에 기록되어 다음 실행 때 복원됩니다. **초기화**는 사용자 배치 파일을 삭제하며 프로그램 재시작 후 기본 Designer 배치로 돌아갑니다.
+
+컨테이너에서 분리하기 전에는 TableLayoutPanel이나 SplitContainer가 Location/Size를 다시 계산하므로 먼저 **자유 배치**를 눌러야 합니다. 기능 버튼을 직접 드래그하는 방식이 아니라 별도 PropertyGrid에서 값을 편집하므로 Read/Write/Open 같은 실제 동작이 실수로 실행되지 않습니다. 너무 작은 크기나 겹치는 위치도 설정할 수 있으므로 변경 전 저장 파일을 백업하거나 초기화 기능을 사용하십시오.
+
 ### Wi-Fi label과 입력창 높이 맞추기
 
 Wi-Fi 설정의 첫 네 행은 `RowStyle = Absolute, 34px`로 통일했습니다. Label은 `AutoSize=false`, `Height=23`, `TextAlign=MiddleLeft`를 사용하고 TextBox/NumericUpDown은 위아래 Dock 대신 `Anchor=Left|Right`를 사용합니다. TableLayoutPanel은 위/아래 Anchor가 없는 컨트롤을 행 가운데에 배치하므로 label과 입력창의 세로 중앙 및 보이는 높이가 맞습니다. Designer에서 변경하려면 `WifiPanel.cs`를 디자인 화면으로 열고 label의 `AutoSize`, `Size.Height`, `TextAlign`, `Anchor`와 해당 행의 `RowStyle`을 같은 값으로 유지하십시오. Windows 단일 행 TextBox는 폰트에 따라 Height가 자동 결정되므로 `Dock=Fill`로 세로 방향까지 늘리지 않는 것이 중요합니다.

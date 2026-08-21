@@ -6,6 +6,7 @@ public partial class SerialPanel : UserControl
 {
     internal event EventHandler? OpenCloseRequested;
     internal event EventHandler? ClearRequested;
+    internal event EventHandler? LayoutEditRequested;
     internal string PortName => ports.Text;
     internal int BaudRate => int.Parse(baud.Text);
     internal int Timeout => decimal.ToInt32(timeout.Value);
@@ -17,6 +18,7 @@ public partial class SerialPanel : UserControl
         refresh.Click += (_, _) => RefreshPorts();
         openClose.Click += (_, _) => OpenCloseRequested?.Invoke(this, EventArgs.Empty);
         clear.Click += (_, _) => ClearRequested?.Invoke(this, EventArgs.Empty);
+        layoutEdit.Click += (_, _) => LayoutEditRequested?.Invoke(this, EventArgs.Empty);
         RefreshPorts();
     }
 

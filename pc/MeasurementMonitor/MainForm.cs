@@ -15,6 +15,7 @@ public partial class MainForm : Form
     private MeasurementSettings? savedMeasurement;
     private SerialSettings? savedSerial;
     private LayoutSettings? savedLayout;
+    private RuntimeLayoutManager? runtimeLayout;
 
     public MainForm()
     {
@@ -27,6 +28,7 @@ public partial class MainForm : Form
 
         serialPanel.OpenCloseRequested += (_, _) => TogglePort();
         serialPanel.ClearRequested += (_, _) => monitorPanel.ClearLog();
+        serialPanel.LayoutEditRequested += (_, _) => OpenLayoutEditor();
         wifiPanel.ReadRequested += (_, _) => SendRead(PendingRead.Wifi, DeviceProtocol.WifiRead());
         wifiPanel.WriteRequested += (_, value) => WriteWifi(value);
         measurementPanel.ReadRequested += (_, _) => SendRead(PendingRead.Measurement, DeviceProtocol.MeasurementRead());
@@ -47,7 +49,12 @@ public partial class MainForm : Form
         if (savedWifi is not null) wifiPanel.Apply(savedWifi);
         if (savedMeasurement is not null) measurementPanel.Apply(savedMeasurement);
         if (savedSerial is not null) serialPanel.Apply(savedSerial);
-        Shown += (_, _) => ApplySavedLayout();
+        Shown += (_, _) =>
+        {
+            ApplySavedLayout();
+            runtimeLayout = new RuntimeLayoutManager(this);
+            runtimeLayout.ApplySaved();
+        };
     }
 
     private void TogglePort()
@@ -107,6 +114,11 @@ public partial class MainForm : Form
         int total = split.Orientation == Orientation.Vertical ? split.ClientSize.Width : split.ClientSize.Height;
         int maximum = Math.Max(split.Panel1MinSize, total - split.Panel2MinSize - split.SplitterWidth);
         return Math.Clamp(value, split.Panel1MinSize, maximum);
+    }
+    private void OpenLayoutEditor()
+    {
+        runtimeLayout ??= new RuntimeLayoutManager(this);
+        new LayoutEditorForm(runtimeLayout).Show(this);
     }
     private void SendRead(PendingRead kind, byte[] frame)
     {
