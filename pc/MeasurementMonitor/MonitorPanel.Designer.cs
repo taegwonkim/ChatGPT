@@ -63,11 +63,15 @@ partial class MonitorPanel
         measurementTitle.Name = "measurementTitle"; measurementTitle.Text = "측정값";
         otherTitle.AutoSize = true; otherTitle.Dock = DockStyle.Top;
         otherTitle.Name = "otherTitle"; otherTitle.Text = "기타 MCU 데이터 / 상태";
-        dataSplit.Dock = DockStyle.Fill; dataSplit.Name = "dataSplit";
+        dataSplit.BackColor = SystemColors.ControlDark; dataSplit.BorderStyle = BorderStyle.FixedSingle;
+        dataSplit.Cursor = Cursors.VSplit; dataSplit.Dock = DockStyle.Fill;
+        dataSplit.IsSplitterFixed = false; dataSplit.Name = "dataSplit";
+        dataSplit.Orientation = Orientation.Vertical;
         dataSplit.Panel1.Controls.Add(measurementLog); dataSplit.Panel1.Controls.Add(measurementTitle);
-        dataSplit.Panel1MinSize = 150;
+        dataSplit.Panel1.BackColor = SystemColors.Control; dataSplit.Panel1MinSize = 150;
         dataSplit.Panel2.Controls.Add(otherLog); dataSplit.Panel2.Controls.Add(otherTitle);
-        dataSplit.Panel2MinSize = 150; dataSplit.Size = new Size(860, 280);
+        dataSplit.Panel2.BackColor = SystemColors.Control; dataSplit.Panel2MinSize = 150;
+        dataSplit.Size = new Size(860, 280);
         dataSplit.SplitterDistance = 428; dataSplit.SplitterWidth = 6; dataSplit.TabIndex = 1;
         monitorGroup.Controls.Add(dataSplit); monitorGroup.Controls.Add(headerLayout); monitorGroup.Dock = DockStyle.Fill;
         monitorGroup.Padding = new Padding(10); monitorGroup.Text = "MCU 수신 데이터"; monitorGroup.Name = "monitorGroup";

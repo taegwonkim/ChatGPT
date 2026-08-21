@@ -6,7 +6,9 @@ public partial class MonitorPanel : UserControl
     {
         InitializeComponent();
         ApplyStatusMacStyle();
+        dataSplit.SplitterMoved += (_, _) => DataSplitterMoved?.Invoke(this, EventArgs.Empty);
     }
+    internal event EventHandler? DataSplitterMoved;
     internal void ApplyStatusMacStyle()
     {
         SetValueStyle(status);

@@ -64,7 +64,7 @@ Wi-Fi와 Measurement의 Read/Write 버튼은 기본적으로 `Size=90,32`, `Font
 - **Measurement 설정**: Reference, Offset, Resistance, Interval Time의 Read/Write
 - **MCU 수신 데이터**: 왼쪽에는 숫자 CSV 측정값, 오른쪽에는 STATUS·설정 응답·기타 frame을 분리 표시하며 auto scroll 지원
 
-하단의 **측정값** 창과 **기타 MCU 데이터 / 상태** 창은 `SplitContainer(dataSplit)`로 나뉩니다. 두 창 사이의 가운데 세로 분리선을 마우스로 좌우로 끌어 각 창 너비를 조절할 수 있습니다. 분리선 위치는 다른 panel 크기와 함께 `settings.json`에 저장되어 다음 실행 때 복원되며, 양쪽 창은 최소 `150px` 너비를 유지합니다.
+하단의 **측정값** 창과 **기타 MCU 데이터 / 상태** 창은 `SplitContainer(dataSplit)`로 나뉩니다. 두 창 사이의 회색 세로 분리선 위에 마우스를 올리면 좌우 크기 조절 커서가 나타나며, 분리선을 좌우로 끌어 각 창 너비를 조절할 수 있습니다. 양쪽 창은 최소 `150px` 너비를 유지합니다. 분리선을 놓으면 현재 위치가 즉시 `settings.json`에 저장되고 다음 실행 때 복원됩니다.
 
 Monitor 상단에는 STATUS 오른쪽에 간격을 두고 MAC Address가 표시됩니다. MCU가 `<STX>MAC_mac address<CR><LF>` 형식으로 전송하면 `MAC_` 뒤의 값을 MAC 데이터 영역에 표시합니다. 예를 들어 `<STX>MAC_AA:BB:CC:DD:EE:FF<CR><LF>`는 `AA:BB:CC:DD:EE:FF`로 표시됩니다. Auto scroll, `STATUS`, `MAC Address` 제목은 Windows 기본 Control 배경색을 사용하고, MCU에서 받은 STATUS/MAC **값 영역만** 흰색 배경과 검정색 `FixedSingle` 테두리를 사용합니다. Clear 버튼은 두 값 영역을 `-`로 초기화합니다.
 
