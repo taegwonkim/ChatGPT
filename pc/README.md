@@ -41,6 +41,8 @@ Serial Port 영역의 **화면 배치** 버튼을 누르면 Label, TextBox, Comb
 
 컨테이너에서 분리하기 전에는 TableLayoutPanel이나 SplitContainer가 Location/Size를 다시 계산하므로 먼저 **자유 배치**를 눌러야 합니다. 기능 버튼을 직접 드래그하는 방식이 아니라 별도 PropertyGrid에서 값을 편집하므로 Read/Write/Open 같은 실제 동작이 실수로 실행되지 않습니다. 너무 작은 크기나 겹치는 위치도 설정할 수 있으므로 변경 전 저장 파일을 백업하거나 초기화 기능을 사용하십시오.
 
+편집기 목록에서 컨트롤을 선택하면 Main Form의 해당 컨트롤 둘레에 파란 점선 선택 테두리가 표시됩니다. 테두리를 마우스로 끌면 컨트롤을 Drag & Drop으로 이동하며, 오른쪽 아래의 파란 사각형 handle을 끌면 크기를 조절합니다. 첫 Drag 시 자동으로 **자유 배치** 상태로 전환됩니다. 선택 테두리의 안쪽은 비어 있어 실제 화면을 그대로 보면서 편집하는 WYSIWYG 방식이며, 이동/크기 변경 후 편집기의 **저장**을 눌러야 다음 실행에도 유지됩니다.
+
 ### Wi-Fi label과 입력창 높이 맞추기
 
 Wi-Fi 설정의 첫 네 행은 `RowStyle = Absolute, 34px`로 통일했습니다. Label은 `AutoSize=false`, `Height=23`, `TextAlign=MiddleLeft`를 사용하고 TextBox/NumericUpDown은 위아래 Dock 대신 `Anchor=Left|Right`를 사용합니다. TableLayoutPanel은 위/아래 Anchor가 없는 컨트롤을 행 가운데에 배치하므로 label과 입력창의 세로 중앙 및 보이는 높이가 맞습니다. Designer에서 변경하려면 `WifiPanel.cs`를 디자인 화면으로 열고 label의 `AutoSize`, `Size.Height`, `TextAlign`, `Anchor`와 해당 행의 `RowStyle`을 같은 값으로 유지하십시오. Windows 단일 행 TextBox는 폰트에 따라 Height가 자동 결정되므로 `Dock=Fill`로 세로 방향까지 늘리지 않는 것이 중요합니다.

@@ -20,7 +20,12 @@ internal sealed class LayoutEditorForm : Form
         Controls.Add(properties);
         Controls.Add(controlsTree);
         Controls.Add(buttons);
-        controlsTree.AfterSelect += (_, args) => properties.SelectedObject = args.Node.Tag;
+        controlsTree.AfterSelect += (_, args) =>
+        {
+            properties.SelectedObject = args.Node.Tag;
+            if (args.Node.Tag is Control control) manager.ShowSelection(control);
+        };
+        FormClosed += (_, _) => manager.ClearSelection();
         PopulateTree();
     }
 
