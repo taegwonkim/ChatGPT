@@ -5,6 +5,18 @@ public partial class MonitorPanel : UserControl
     public MonitorPanel()
     {
         InitializeComponent();
+        ApplyStatusMacStyle();
+    }
+    internal void ApplyStatusMacStyle()
+    {
+        SetValueStyle(status);
+        SetValueStyle(macAddress);
+    }
+    private static void SetValueStyle(Label valueLabel)
+    {
+        valueLabel.BackColor = Color.White;
+        valueLabel.ForeColor = Color.Black;
+        valueLabel.BorderStyle = BorderStyle.FixedSingle;
     }
     internal void ClearLog()
     {

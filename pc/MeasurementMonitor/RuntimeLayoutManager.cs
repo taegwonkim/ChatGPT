@@ -54,8 +54,11 @@ internal sealed class RuntimeLayoutManager
                 if (layout.FontSize > 0)
                     control.Font = new Font(layout.FontName, layout.FontSize,
                         (FontStyle)layout.FontStyle, GraphicsUnit.Point);
-                if (layout.BackColor != 0) control.BackColor = Color.FromArgb(layout.BackColor);
-                if (layout.ForeColor != 0) control.ForeColor = Color.FromArgb(layout.ForeColor);
+                bool fixedMonitorValueStyle = control.Name is "status" or "macAddress";
+                if (!fixedMonitorValueStyle && layout.BackColor != 0)
+                    control.BackColor = Color.FromArgb(layout.BackColor);
+                if (!fixedMonitorValueStyle && layout.ForeColor != 0)
+                    control.ForeColor = Color.FromArgb(layout.ForeColor);
                 control.Anchor = (AnchorStyles)layout.Anchor;
             }
         }

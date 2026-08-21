@@ -64,6 +64,8 @@ Wi-Fi와 Measurement의 Read/Write 버튼은 기본적으로 `Size=90,32`, `Font
 
 Monitor 상단에는 STATUS 오른쪽에 간격을 두고 MAC Address가 표시됩니다. MCU가 `<STX>MAC_mac address<CR><LF>` 형식으로 전송하면 `MAC_` 뒤의 값을 MAC 데이터 영역에 표시합니다. 예를 들어 `<STX>MAC_AA:BB:CC:DD:EE:FF<CR><LF>`는 `AA:BB:CC:DD:EE:FF`로 표시됩니다. Auto scroll, `STATUS`, `MAC Address` 제목은 Windows 기본 Control 배경색을 사용하고, MCU에서 받은 STATUS/MAC **값 영역만** 흰색 배경과 검정색 `FixedSingle` 테두리를 사용합니다. Clear 버튼은 두 값 영역을 `-`로 초기화합니다.
 
+STATUS/MAC 값 영역의 `BackColor=White`, `ForeColor=Black`, `BorderStyle=FixedSingle`은 생성 시와 사용자 배치 복원 직후 다시 강제 적용됩니다. 따라서 이전 `control-layout.json`에 다른 색상이 저장되어 있어도 흰색 배경과 검정색 글자/테두리가 유지됩니다. 화면 배치 편집기 역시 이 두 값 영역의 저장 색상은 시작 시 적용하지 않습니다.
+
 MAC Address의 `Location`을 직접 바꾸면 원위치로 돌아가는 이유는 layout container가 자식 위치를 자동 계산하기 때문입니다. `TableLayoutPanel(headerLayout)`에서 STATUS 값과 MAC Address 제목 사이에 폭 `80px`의 빈 열을 두었습니다. 간격을 바꾸려면 MonitorPanel Designer에서 `headerLayout`을 선택하고 **Edit Rows and Columns → 네 번째 열(Absolute)의 Width**를 변경하십시오. MAC label의 `Location`을 직접 수정할 필요가 없습니다.
 
 Designer에서 `Math.Min(control.Maximum, Math.Max(control.Minimum, value))`가 표시된 것은 저장된 Measurement 값이 NumericUpDown 범위를 벗어나지 않도록 최소/최대 범위로 제한하던 `Clamp()` 코드 위치가 Designer 오류/호출 스택에 나타난 것입니다. 계산식 자체는 최소값보다 작으면 Minimum, 최대값보다 크면 Maximum을 선택한다는 뜻입니다. Designer가 MainForm을 미리 생성하면서 PC 저장 설정을 읽고 `MeasurementPanel.Apply()`를 실행한 것이 원인이 될 수 있어, 디자인 모드에서는 설정 로드와 통신 이벤트 연결을 실행하지 않도록 변경했습니다. Clamp도 동일한 동작을 명시적인 if 문으로 바꿔 오류 위치를 이해하기 쉽게 했습니다.
