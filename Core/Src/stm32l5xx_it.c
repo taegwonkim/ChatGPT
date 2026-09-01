@@ -54,8 +54,7 @@ void SysTick_Handler(void)
   HAL_IncTick();
 }
 
-void RTC_WKUP_IRQHandler(void)
+void RTC_IRQHandler(void)
 {
-  HAL_RTCEx_WakeUpTimerIRQHandler(&hrtc);
+  HAL_RTC_AlarmIRQHandler(&hrtc);
 }
-

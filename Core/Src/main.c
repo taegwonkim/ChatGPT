@@ -34,6 +34,9 @@ static void SystemClock_Config(void)
 
   HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE2);
 
+  /* LSE and RTC calendar/backup-register writes require backup-domain access. */
+  HAL_PWR_EnableBkUpAccess();
+
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_MSI |
                                     RCC_OSCILLATORTYPE_LSE;
   RCC_OscInitStruct.LSEState = RCC_LSE_ON;
@@ -80,4 +83,3 @@ void assert_failed(uint8_t *file, uint32_t line)
   (void)line;
 }
 #endif
-

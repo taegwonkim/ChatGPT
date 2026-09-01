@@ -1,8 +1,8 @@
 # STM32L562 RTC daily software reset example
 
 This repository contains the application-owned portion of an STM32CubeMX / STM32CubeIDE
-project for an STM32L562. The RTC wake-up timer is clocked from the 32.768 kHz LSE and
-requests a software reset every 24 hours (86,400 seconds).
+project for an STM32L562. The RTC calendar is clocked from the 32.768 kHz LSE and RTC
+Alarm A requests a software reset every day at 00:00:00.
 
 ## Generate and open the project
 
@@ -15,21 +15,27 @@ requests a software reset every 24 hours (86,400 seconds).
    files in `Core/` (or restore them from Git after generation).
 4. Import/open the generated project in STM32CubeIDE, build, flash, and run it.
 
-The `.ioc` enables RTC wake-up and its interrupt. `MX_RTC_Init()` selects the 17-bit
-wake-up counter and programs it for 86,399 + 1 one-second RTC `ck_spre` ticks. The
-17-bit mode is necessary because a 24-hour count does not fit in the 16-bit mode. The
-interrupt is handled by the HAL,
-which invokes `HAL_RTCEx_WakeUpTimerEventCallback()`; the callback issues
-`NVIC_SystemReset()`.
+The `.ioc` enables RTC Alarm A and its interrupt. `MX_RTC_Init()` masks the alarm's
+date/weekday field, so Alarm A matches once per day at 00:00:00. The HAL interrupt
+handler invokes `HAL_RTC_AlarmAEventCallback()`, which issues `NVIC_SystemReset()`.
+Change `RTC_ALARM_HOUR`, `RTC_ALARM_MINUTE`, and `RTC_ALARM_SECOND` in
+`Core/Src/rtc.c` to select another daily reset time.
+
+On the first boot only, the example initializes the calendar to 2024-01-01 00:00:01
+and writes a magic value to backup register DR0. A real product should set the RTC from
+its actual UTC/local time source. Later software resets preserve the calendar. The code
+also waits until the alarm-matching second has passed before re-arming Alarm A, avoiding
+an immediate reset loop after the MCU reboots at midnight.
 
 ## Debugging notes
 
 * A debugger may be configured to halt or disconnect when the MCU resets. This does not
   mean the periodic reset failed; inspect `RCC->CSR` or set a breakpoint in
-  `HAL_RTCEx_WakeUpTimerEventCallback()` to confirm it.
+  `HAL_RTC_AlarmAEventCallback()` to confirm it.
 * The code records the reset flags in `g_reset_cause` before clearing them. Inspect this
   variable in the debugger to distinguish software resets from power-on resets.
-* The first reset occurs approximately 24 hours after `MX_RTC_Init()` runs. Every
-  reboot re-arms the timer, so boot time is not included in the 24-hour interval.
+* Alarm A resets the MCU at the configured time of day, rather than 24 hours after
+  `MX_RTC_Init()`. With the included first-boot calendar value, the first reset occurs
+  just under 24 hours later.
 * Do not perform application work in the RTC callback. It intentionally resets
   immediately and never returns.
