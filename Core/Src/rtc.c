@@ -3,10 +3,15 @@
 
 RTC_HandleTypeDef hrtc;
 
-/* With RTC_WAKEUPCLOCK_CK_SPRE_16BITS, one count is one second. The hardware
- * expires after WakeUpCounter + 1 ticks, therefore 599 means 600 seconds. */
-#define RTC_RESET_PERIOD_SECONDS  (600UL)
+/* The 17-bit ck_spre mode is required because 24 hours does not fit in the
+ * 16-bit wake-up counter. One count is one second and the hardware expires
+ * after WakeUpCounter + 1 ticks, therefore 86399 means 86400 seconds. */
+#define RTC_RESET_PERIOD_SECONDS  (24UL * 60UL * 60UL)
 #define RTC_WAKEUP_COUNTER        (RTC_RESET_PERIOD_SECONDS - 1UL)
+
+#if RTC_WAKEUP_COUNTER > 0x1FFFFUL
+#error "RTC wake-up period exceeds the 17-bit counter range"
+#endif
 
 void MX_RTC_Init(void)
 {
@@ -30,7 +35,7 @@ void MX_RTC_Init(void)
   }
 
   if (HAL_RTCEx_SetWakeUpTimer_IT(&hrtc, RTC_WAKEUP_COUNTER,
-                                  RTC_WAKEUPCLOCK_CK_SPRE_16BITS) != HAL_OK)
+                                  RTC_WAKEUPCLOCK_CK_SPRE_17BITS) != HAL_OK)
   {
     Error_Handler();
   }
@@ -63,4 +68,3 @@ void HAL_RTCEx_WakeUpTimerEventCallback(RTC_HandleTypeDef *rtcHandle)
     NVIC_SystemReset();
   }
 }
-
