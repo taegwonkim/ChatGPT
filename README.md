@@ -13,7 +13,18 @@ Alarm A requests a software reset every day at 00:00:00.
 3. In **Project Manager**, select **STM32CubeIDE** as the toolchain and generate code.
    When CubeMX asks whether to overwrite files already present, retain the application
    files in `Core/` (or restore them from Git after generation).
-4. Import/open the generated project in STM32CubeIDE, build, flash, and run it.
+4. Connect `PA9` (`USART1_TX`) to the RX input of a 3.3 V USB-to-UART adapter and
+   connect the grounds. `PA10` is configured as `USART1_RX` but is not required for the
+   reset message. Do not connect an RS-232 voltage-level cable directly to the MCU.
+5. Import/open the generated project in STM32CubeIDE, build, flash, and run it. Open a
+   serial terminal at **115200 baud, 8 data bits, no parity, 1 stop bit (8-N-1)**.
+
+On every boot, including a power-on boot and an RTC Alarm A software reset, USART1
+transmits the following line before Alarm A is initialized:
+
+```text
+[RESET] STM32L562 has been reset.
+```
 
 The `.ioc` enables RTC Alarm A and its interrupt. `MX_RTC_Init()` masks the alarm's
 date/weekday field, so Alarm A matches once per day at 00:00:00. The HAL interrupt

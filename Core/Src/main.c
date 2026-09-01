@@ -1,5 +1,6 @@
 #include "main.h"
 #include "rtc.h"
+#include "usart.h"
 
 /* Kept in RAM so it is easy to inspect in an STM32CubeIDE debug session. */
 volatile uint32_t g_reset_cause;
@@ -13,6 +14,12 @@ int main(void)
 
   g_reset_cause = RCC->CSR;
   __HAL_RCC_CLEAR_RESET_FLAGS();
+
+  MX_USART1_UART_Init();
+  if (USART1_SendResetMessage() != HAL_OK)
+  {
+    Error_Handler();
+  }
 
   MX_RTC_Init();
 
