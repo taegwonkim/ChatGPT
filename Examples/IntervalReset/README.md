@@ -9,6 +9,6 @@
 
 RTC Wake-up Counter는 86,399이며 1초 tick을 86,400번 센 뒤 콜백에서
 `NVIC_SystemReset()`을 실행합니다. 리셋 후 USART3 부팅 메시지가 출력되고 새로운
-24시간 주기가 시작됩니다. 메인 루프는 저전력 모드에 진입하지 않고 계속 실행되며
-5초마다 heartbeat를 출력합니다.
-
+24시간 주기가 시작됩니다. 시작 코드가 `SLEEPONEXIT`와 `SLEEPDEEP`을 지우고 메인
+루프에는 WFI/WFE가 없으므로 MCU는 계속 Run 모드로 동작하며 5초마다 heartbeat를
+출력합니다. RTC Wake-up Timer는 이 실행과 독립적으로 24시간을 계산합니다.

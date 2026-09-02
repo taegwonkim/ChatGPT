@@ -8,6 +8,7 @@ volatile uint32_t g_reset_cause;
 volatile uint32_t g_loop_count;
 
 static void SystemClock_Config(void);
+static void RunMode_Configure(void);
 
 int main(void)
 {
@@ -15,6 +16,7 @@ int main(void)
 
   HAL_Init();
   SystemClock_Config();
+  RunMode_Configure();
 
   g_reset_cause = RCC->CSR;
   __HAL_RCC_CLEAR_RESET_FLAGS();
@@ -32,7 +34,7 @@ int main(void)
   {
     uint32_t now;
 
-    /* Intentionally remain in Run mode: do not call __WFI(), Sleep or Stop. */
+    /* Volatile work keeps the application active in Run mode. */
     g_loop_count++;
     now = HAL_GetTick();
 
@@ -45,6 +47,15 @@ int main(void)
       }
     }
   }
+}
+
+static void RunMode_Configure(void)
+{
+  /* Do not automatically enter Sleep after an interrupt and do not select a
+   * deep-sleep state. The main loop also contains no WFI/WFE instruction. */
+  SCB->SCR &= ~(SCB_SCR_SLEEPONEXIT_Msk | SCB_SCR_SLEEPDEEP_Msk);
+  __DSB();
+  __ISB();
 }
 
 static void SystemClock_Config(void)
