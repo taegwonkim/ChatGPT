@@ -2,37 +2,51 @@
 #include "rtc.h"
 #include "usart.h"
 
-/* Kept in RAM so it is easy to inspect in an STM32CubeIDE debug session. */
+#define LOOP_REPORT_PERIOD_MS  (5000UL)
+
 volatile uint32_t g_reset_cause;
+volatile uint32_t g_loop_count;
 
 static void SystemClock_Config(void);
 
 int main(void)
 {
+  uint32_t lastReportTick;
+
   HAL_Init();
   SystemClock_Config();
 
   g_reset_cause = RCC->CSR;
   __HAL_RCC_CLEAR_RESET_FLAGS();
 
-  MX_USART1_UART_Init();
-  if (USART1_SendResetMessage() != HAL_OK)
+  MX_USART3_UART_Init();
+  if (USART3_SendResetMessage(g_reset_cause) != HAL_OK)
   {
     Error_Handler();
   }
 
   MX_RTC_Init();
+  lastReportTick = HAL_GetTick();
 
   while (1)
   {
-    /* The RTC interrupt performs the reset. Sleeping avoids a busy loop. */
-    __WFI();
+    uint32_t now;
+
+    /* Intentionally remain in Run mode: do not call __WFI(), Sleep or Stop. */
+    g_loop_count++;
+    now = HAL_GetTick();
+
+    if ((now - lastReportTick) >= LOOP_REPORT_PERIOD_MS)
+    {
+      lastReportTick = now;
+      if (USART3_SendLoopStatus(g_loop_count, now / 1000UL) != HAL_OK)
+      {
+        Error_Handler();
+      }
+    }
   }
 }
 
-/**
-  * @brief Use the 4 MHz MSI as SYSCLK and the external 32.768 kHz crystal for RTC.
-  */
 static void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
@@ -40,8 +54,6 @@ static void SystemClock_Config(void)
   RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
 
   HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE2);
-
-  /* LSE and RTC calendar/backup-register writes require backup-domain access. */
   HAL_PWR_EnableBkUpAccess();
 
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_MSI |

@@ -1,47 +1,53 @@
-# STM32L562 RTC 24-hour interval software reset example
+# STM32L562 periodic-reset examples
 
-This repository contains the application-owned portion of an STM32CubeMX / STM32CubeIDE
-project for an STM32L562. The RTC is clocked from the 32.768 kHz LSE and its wake-up
-timer requests a software reset every 24 hours after initialization.
+이 저장소에는 서로 독립적인 STM32CubeMX/STM32CubeIDE 예제 두 개가 있습니다.
 
-## Generate and open the project
+| 예제 | 프로젝트 파일 | 리셋 기준 |
+| --- | --- | --- |
+| 24시간 간격 방식 | `Examples/IntervalReset/STM32L562_Interval_Reset.ioc` | `MX_RTC_Init()` 실행 후 86,400초 |
+| Alarm A 방식 | `Examples/AlarmAReset/STM32L562_AlarmA_Reset.ioc` | RTC 달력 기준 매일 00:00:00 |
 
-1. Open `STM32L562_RTC_Reset.ioc` in STM32CubeMX (or directly in STM32CubeIDE).
-2. Select the exact STM32L562 package/part used by your board if it differs from
-   `STM32L562ZETx`, and verify that the board has a 32.768 kHz crystal connected to
-   `PC14/PC15`. If it does not, configure a suitable RTC clock source instead.
-3. In **Project Manager**, select **STM32CubeIDE** as the toolchain and generate code.
-   When CubeMX asks whether to overwrite files already present, retain the application
-   files in `Core/` (or restore them from Git after generation).
-4. Connect `PA9` (`USART1_TX`) to the RX input of a 3.3 V USB-to-UART adapter and
-   connect the grounds. `PA10` is configured as `USART1_RX` but is not required for the
-   reset message. Do not connect an RS-232 voltage-level cable directly to the MCU.
-5. Import/open the generated project in STM32CubeIDE, build, flash, and run it. Open a
-   serial terminal at **115200 baud, 8 data bits, no parity, 1 stop bit (8-N-1)**.
+두 예제는 코드를 공유하지 않으므로 원하는 디렉터리의 `.ioc` 파일만 열어 각각
+별도의 STM32CubeIDE 프로젝트로 생성할 수 있습니다.
 
-On every boot, including a power-on boot and an RTC wake-up software reset, USART1
-transmits the following line before the 24-hour timer is initialized:
+## 공통 동작
+
+* MCU는 Sleep/Stop/Standby 모드로 들어가지 않습니다. `while (1)`이 계속 실행되며
+  `__WFI()`나 전원 절약 API를 호출하지 않습니다.
+* 매 부팅 시 `RCC->CSR`의 리셋 플래그를 읽은 후 USART3로 리셋 종류와 원시 플래그를
+  전송합니다. RTC 콜백에서 소프트웨어 리셋되면 다음 부팅에서 `type=SOFTWARE`가
+  출력됩니다.
+* 메인 루프는 반복할 때마다 `g_loop_count`를 증가시키고, 5초마다 누적 루프 횟수와
+  `HAL_GetTick()` 기반 부팅 후 경과 시간을 USART3로 보냅니다.
+* USART3 설정은 115200 baud, 8-N-1이며 `PB10=TX`, `PB11=RX`입니다. `PB10`을 3.3 V
+  USB-to-UART 어댑터의 RX에 연결하고 GND를 공통으로 연결하십시오. RS-232 레벨을
+  MCU 핀에 직접 연결하면 안 됩니다.
+
+출력 예시는 다음과 같습니다.
 
 ```text
-[RESET] STM32L562 has been reset.
+[BOOT] MCU reset: type=SOFTWARE, RCC_CSR=0x14000000
+[LOOP] count=1234567, uptime=5 s
+[LOOP] count=2469134, uptime=10 s
 ```
 
-The `.ioc` enables the RTC wake-up timer and its interrupt. `MX_RTC_Init()` uses the
-one-second `ck_spre` clock in 17-bit mode and programs `WakeUpCounter=86399`. Because
-the hardware interval is `WakeUpCounter + 1` ticks, the interrupt occurs after 86,400
-seconds. The HAL handler invokes `HAL_RTCEx_WakeUpTimerEventCallback()`, which issues
-`NVIC_SystemReset()`. After reboot, initialization deactivates the retained timer state
-and starts a new 24-hour interval; the reset therefore occurs relative to each boot and
-does not depend on calendar time.
+루프 횟수는 CPU 속도, 컴파일 최적화, 인터럽트 및 UART 전송 시간에 따라 달라집니다.
+정확한 시간 측정값이 아니라 펌웨어가 계속 실행 중임을 확인하는 heartbeat 값입니다.
 
-## Debugging notes
+## 1. 24시간 간격 방식
 
-* A debugger may be configured to halt or disconnect when the MCU resets. This does not
-  mean the periodic reset failed; inspect `RCC->CSR` or set a breakpoint in
-  `HAL_RTCEx_WakeUpTimerEventCallback()` to confirm it.
-* The code records the reset flags in `g_reset_cause` before clearing them. Inspect this
-  variable in the debugger to distinguish software resets from power-on resets.
-* The 24-hour interval begins when `MX_RTC_Init()` arms the wake-up timer. Firmware
-  startup time before that call is not part of the interval.
-* Do not perform application work in the RTC callback. It intentionally resets
-  immediately and never returns.
+`Examples/IntervalReset`은 RTC Wake-up Timer의 1 Hz `ck_spre`와 17비트 모드를
+사용합니다. `WakeUpCounter=86399`이므로 `86399 + 1 = 86400`초 후 리셋합니다.
+재부팅할 때 기존 Wake-up Timer 상태를 해제하고 새로운 24시간 주기를 시작하므로
+RTC 달력 시각과 관계없이 **부팅할 때마다 24시간 후** 리셋됩니다.
+
+자세한 사용 방법은 `Examples/IntervalReset/README.md`를 참조하십시오.
+
+## 2. Alarm A 방식
+
+`Examples/AlarmAReset`은 Date/Weekday 필드를 마스킹한 Alarm A를 사용하여 RTC 달력
+기준 매일 `00:00:00`에 리셋합니다. 기본 Alarm 시각은 `rtc.c`의
+`RTC_ALARM_HOUR`, `RTC_ALARM_MINUTE`, `RTC_ALARM_SECOND`에서 변경할 수 있습니다.
+실제 제품에서는 최초 부팅 시 RTC를 실제 UTC 또는 현지 시각으로 설정해야 합니다.
+
+자세한 사용 방법은 `Examples/AlarmAReset/README.md`를 참조하십시오.
