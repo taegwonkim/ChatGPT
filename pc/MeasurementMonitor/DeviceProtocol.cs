@@ -17,6 +17,25 @@ internal static class DeviceProtocol
 
     internal static byte[] MeasurementRead() => Frame("MEAS_R_ALL");
 
+    internal static byte[] ResetRead() => Frame("RESET_R_ALL");
+
+    internal static byte[] ResetWrite(uint seconds) =>
+        Frame($"RESET_W_ALL,{seconds.ToString(CultureInfo.InvariantCulture)}");
+
+    internal static bool TryParseResetSettings(string frame, out uint seconds)
+    {
+        seconds = 0;
+        string text = frame.Trim();
+        foreach (string command in new[] { "RESET_R_ALL", "RESET_W_ALL" })
+        {
+            if (!text.StartsWith(command, StringComparison.OrdinalIgnoreCase)) continue;
+            text = text[command.Length..].TrimStart(' ', ',', ':', '=');
+            return uint.TryParse(text.TrimEnd(','), NumberStyles.None,
+                CultureInfo.InvariantCulture, out seconds) && seconds <= 31536000U;
+        }
+        return false;
+    }
+
     internal static byte[] MeasurementWrite(MeasurementSettings value) => Frame(string.Join(',',
         "MEAS_W_ALL",
         value.ReferenceMv.ToString(CultureInfo.InvariantCulture),

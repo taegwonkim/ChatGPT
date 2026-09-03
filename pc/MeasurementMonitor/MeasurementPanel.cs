@@ -4,6 +4,8 @@ public partial class MeasurementPanel : UserControl
 {
     internal event EventHandler? ReadRequested;
     internal event EventHandler<MeasurementSettings>? WriteRequested;
+    internal event EventHandler? ResetReadRequested;
+    internal event EventHandler<uint>? ResetWriteRequested;
 
     public MeasurementPanel()
     {
@@ -12,6 +14,8 @@ public partial class MeasurementPanel : UserControl
         writeButton.Click += (_, _) => WriteRequested?.Invoke(this,
             new(reference.Value, offset.Value, resistance.Value, interval.Value,
                 rs485Only.SelectedIndex == 1));
+        resetReadButton.Click += (_, _) => ResetReadRequested?.Invoke(this, EventArgs.Empty);
+        resetWriteButton.Click += (_, _) => ResetWriteRequested?.Invoke(this, (uint)resetInterval.Value);
     }
 
     internal void Apply(MeasurementSettings value)
@@ -24,6 +28,9 @@ public partial class MeasurementPanel : UserControl
     }
     internal MeasurementSettings CurrentSettings => new(reference.Value, offset.Value,
         resistance.Value, interval.Value, rs485Only.SelectedIndex == 1);
+    internal uint ResetIntervalSeconds => (uint)resetInterval.Value;
+    internal void ApplyResetInterval(uint seconds) =>
+        resetInterval.Value = Clamp(resetInterval, seconds);
 
     private static decimal Clamp(NumericUpDown control, decimal value)
     {

@@ -61,12 +61,22 @@ Wi-Fi와 Measurement의 Read/Write 버튼은 기본적으로 `Size=90,32`, `Font
 
 - **Serial Port**: COM port, baudrate, timeout, Open/Close, 포트 새로고침, 로그 Clear
 - **Wi-Fi 설정**: AP, server, DHCP 및 static IPv4 설정의 Read/Write
-- **Measurement 설정**: Reference, Offset, Resistance, Interval Time의 Read/Write
+- **Measurement 설정**: Reference, Offset, Resistance, Interval Time, RS485_ONLY의 Read/Write와 RTC software reset 주기 설정
 - **MCU 수신 데이터**: 왼쪽에는 숫자 CSV 측정값, 오른쪽에는 STATUS·설정 응답·기타 frame을 분리 표시하며 auto scroll 지원
 
 하단의 **측정값** 창과 **기타 MCU 데이터 / 상태** 창은 `SplitContainer(dataSplit)`로 나뉩니다. 두 창 사이의 회색 세로 분리선 위에 마우스를 올리면 좌우 크기 조절 커서가 나타나며, 분리선을 좌우로 끌어 각 창 너비를 조절할 수 있습니다. 양쪽 창은 최소 `150px` 너비를 유지합니다. 분리선을 놓으면 현재 위치가 즉시 `settings.json`에 저장되고 다음 실행 때 복원됩니다.
 
 Monitor 상단에는 STATUS 오른쪽에 간격을 두고 MAC Address가 표시됩니다. MCU가 `<STX>MAC_mac address<CR><LF>` 형식으로 전송하면 `MAC_` 뒤의 값을 MAC 데이터 영역에 표시합니다. 예를 들어 `<STX>MAC_AA:BB:CC:DD:EE:FF<CR><LF>`는 `AA:BB:CC:DD:EE:FF`로 표시됩니다. Auto scroll, `STATUS`, `MAC Address` 제목은 Windows 기본 Control 배경색을 사용하고, MCU에서 받은 STATUS/MAC **값 영역만** 흰색 배경과 검정색 `FixedSingle` 테두리를 사용합니다. Clear 버튼은 두 값 영역을 `-`로 초기화합니다.
+
+### RTC software reset 주기
+
+Measurement 설정 창의 **RTC Reset Period (sec)**에 초 단위 주기를 입력합니다. `0`은 자동 reset OFF이고 최대값은 `31536000`초(365일)입니다.
+
+- **Reset Read**: `<STX>RESET_R_ALL<CR><LF>` 전송
+- **Reset Write**: `<STX>RESET_W_ALL,seconds<CR><LF>` 전송
+- MCU 응답: `<STX>RESET_R_ALL,seconds<CR><LF>`
+
+응답값은 MCU 수신 데이터 창으로 보내지 않고 RTC Reset Period 입력란에 표시되며 PC 설정 파일에도 저장됩니다. 실제 reset은 STM32 펌웨어의 RTC wake-up timer가 수행합니다.
 
 STATUS/MAC 값 영역의 `BackColor=White`, `ForeColor=Black`, `BorderStyle=FixedSingle`은 생성 시와 사용자 배치 복원 직후 다시 강제 적용됩니다. 따라서 이전 `control-layout.json`에 다른 색상이 저장되어 있어도 흰색 배경과 검정색 글자/테두리가 유지됩니다. 화면 배치 편집기 역시 이 두 값 영역의 저장 색상은 시작 시 적용하지 않습니다.
 

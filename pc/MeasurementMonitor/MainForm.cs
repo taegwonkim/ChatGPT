@@ -4,7 +4,7 @@ namespace MeasurementMonitor;
 
 public partial class MainForm : Form
 {
-    private enum PendingRead { None, Wifi, Measurement }
+    private enum PendingRead { None, Wifi, Measurement, Reset }
     private const int MinimumSettingsResponseTimeoutMs = 5000;
     private readonly SerialPort port = new();
     private readonly ProtocolFramer framer = new();
@@ -15,6 +15,7 @@ public partial class MainForm : Form
     private MeasurementSettings? savedMeasurement;
     private SerialSettings? savedSerial;
     private LayoutSettings? savedLayout;
+    private uint savedResetInterval;
     private RuntimeLayoutManager? runtimeLayout;
 
     public MainForm()
@@ -33,6 +34,9 @@ public partial class MainForm : Form
         wifiPanel.WriteRequested += (_, value) => WriteWifi(value);
         measurementPanel.ReadRequested += (_, _) => SendRead(PendingRead.Measurement, DeviceProtocol.MeasurementRead());
         measurementPanel.WriteRequested += (_, value) => WriteMeasurement(value);
+        measurementPanel.ResetReadRequested += (_, _) =>
+            SendRead(PendingRead.Reset, DeviceProtocol.ResetRead());
+        measurementPanel.ResetWriteRequested += (_, seconds) => WriteResetInterval(seconds);
         port.DataReceived += PortDataReceived;
         FormClosing += (_, _) =>
         {
@@ -46,9 +50,11 @@ public partial class MainForm : Form
         savedMeasurement = saved.Measurement;
         savedSerial = saved.Serial;
         savedLayout = saved.Layout;
+        savedResetInterval = saved.ResetIntervalSeconds;
         if (savedWifi is not null) wifiPanel.Apply(savedWifi);
         if (savedMeasurement is not null) measurementPanel.Apply(savedMeasurement);
         if (savedSerial is not null) serialPanel.Apply(savedSerial);
+        measurementPanel.ApplyResetInterval(savedResetInterval);
         Shown += (_, _) =>
         {
             ApplySavedLayout();
@@ -104,8 +110,14 @@ public partial class MainForm : Form
         savedMeasurement = measurement;
         savedSerial = serial;
         savedLayout = layout;
-        if (!AppSettingsStore.Save(new(wifi, measurement, serial, layout)))
+        if (!AppSettingsStore.Save(new(wifi, measurement, serial, layout, savedResetInterval)))
             monitorPanel.AddOther("[PC 설정 저장 실패] settings.json 파일을 기록할 수 없습니다.");
+    }
+    private void WriteResetInterval(uint seconds)
+    {
+        savedResetInterval = seconds;
+        SaveSettings(savedWifi, savedMeasurement, savedSerial, CurrentLayout);
+        TrySend(() => DeviceProtocol.ResetWrite(seconds));
     }
     private LayoutSettings CurrentLayout => new(contentSplit.SplitterDistance,
         settingsSplit.SplitterDistance, monitorPanel.DataSplitterDistance);
@@ -164,7 +176,14 @@ public partial class MainForm : Form
     private void HandleFrame(ReceivedFrame received)
     {
         string frame = received.Payload;
-        if (received.HasStx && DeviceProtocol.TryParseWifiSettings(frame, out WifiSettings? wifi) && wifi is not null)
+        if (received.HasStx && DeviceProtocol.TryParseResetSettings(frame, out uint resetSeconds))
+        {
+            pendingRead = PendingRead.None;
+            savedResetInterval = resetSeconds;
+            measurementPanel.ApplyResetInterval(resetSeconds);
+            SaveSettings(savedWifi, savedMeasurement, savedSerial, CurrentLayout);
+        }
+        else if (received.HasStx && DeviceProtocol.TryParseWifiSettings(frame, out WifiSettings? wifi) && wifi is not null)
         {
             pendingRead = PendingRead.None;
             wifiPanel.Apply(wifi);
