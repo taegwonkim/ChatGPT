@@ -178,7 +178,10 @@ public partial class MainForm : Form
     private void HandleFrame(ReceivedFrame received)
     {
         string frame = received.Payload;
-        if (received.HasStx && DeviceProtocol.TryParseResetSettings(frame, out uint resetSeconds))
+        // MAC frame은 원문을 기타 데이터 창에 남기면서 값만 별도 MAC 영역에도 표시합니다.
+        if (DeviceProtocol.TryParseMacAddress(frame, out string macAddress))
+            monitorPanel.AddMacFrame(frame, macAddress, received.HasStx);
+        else if (received.HasStx && DeviceProtocol.TryParseResetSettings(frame, out uint resetSeconds))
         {
             pendingRead = PendingRead.None;
             savedResetInterval = resetSeconds;

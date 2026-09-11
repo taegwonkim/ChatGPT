@@ -36,6 +36,22 @@ internal static class DeviceProtocol
         return false;
     }
 
+    internal static bool TryParseMacAddress(string frame, out string macAddress)
+    {
+        macAddress = string.Empty;
+        string text = frame.Trim('\0', ' ', '\t', '\r', '\n', (char)Stx);
+        foreach (string prefix in new[] { "MAC_ADDRESS", "MAC ADDRESS", "MAC" })
+        {
+            if (!text.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) continue;
+            if (text.Length == prefix.Length) return false;
+            char separator = text[prefix.Length];
+            if (separator is not ('_' or ',' or ':' or '=' or ' ')) return false;
+            macAddress = text[(prefix.Length + 1)..].TrimStart('_', ',', ':', '=', ' ').Trim();
+            return macAddress.Length != 0;
+        }
+        return false;
+    }
+
     internal static byte[] MeasurementWrite(MeasurementSettings value) => Frame(string.Join(',',
         "MEAS_W_ALL",
         value.ReferenceMv.ToString(CultureInfo.InvariantCulture),

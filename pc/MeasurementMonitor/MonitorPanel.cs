@@ -64,14 +64,22 @@ public partial class MonitorPanel : UserControl
     }
     internal void AddFrame(string frame) => AddOther(frame);
     internal void AddMeasurement(string frame) => Append(measurementLog, frame);
+    internal void SetMacAddress(string value)
+    {
+        macAddress.Text = string.IsNullOrWhiteSpace(value) ? "-" : value.Trim();
+        macAddress.Refresh();
+    }
+    internal void AddMacFrame(string frame, string value, bool hasStx)
+    {
+        SetMacAddress(value);
+        Append(otherLog, hasStx ? frame : $"[RAW] {frame}");
+    }
     internal void AddOther(string frame, bool hasStx = true)
     {
         if (frame.StartsWith("STATUS", StringComparison.OrdinalIgnoreCase))
             status.Text = ExtractValue(frame, "STATUS");
-        if (frame.StartsWith("MAC_", StringComparison.OrdinalIgnoreCase))
-        {
-            macAddress.Text = ExtractValue(frame, "MAC");
-        }
+        if (DeviceProtocol.TryParseMacAddress(frame, out string value))
+            SetMacAddress(value);
         Append(otherLog, hasStx ? frame : $"[RAW] {frame}");
     }
     private void Append(RichTextBox target, string frame)
