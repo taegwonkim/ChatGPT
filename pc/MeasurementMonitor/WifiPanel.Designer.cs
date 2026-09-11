@@ -136,9 +136,11 @@ partial class WifiPanel
         readButton.Anchor = AnchorStyles.None;
         readButton.AutoSize = false;
         readButton.Font = new Font("Segoe UI", 10F, FontStyle.Regular, GraphicsUnit.Point);
+        readButton.Enabled = true;
         readButton.Name = "readButton";
         readButton.Size = new Size(90, 32);
         readButton.Text = "Read";
+        readButton.TabStop = true;
         readButton.UseVisualStyleBackColor = true;
         writeButton.Anchor = AnchorStyles.None;
         writeButton.AutoSize = false;

@@ -10,10 +10,21 @@ public partial class WifiPanel : UserControl
     public WifiPanel()
     {
         InitializeComponent();
+        EnsureReadButtonEnabled();
         dhcp.CheckedChanged += (_, _) => UpdateDhcpFields();
         readButton.Click += (_, _) => ReadRequested?.Invoke(this, EventArgs.Empty);
         writeButton.Click += (_, _) => Write();
         UpdateDhcpFields();
+    }
+
+    /* 사용자 layout 복원이나 부모 상태 변경 뒤에도 Read 명령은 항상 사용할 수 있습니다. */
+    internal void EnsureReadButtonEnabled()
+    {
+        wifiGroup.Enabled = true;
+        grid.Enabled = true;
+        readButton.Enabled = true;
+        readButton.TabStop = true;
+        readButton.UseVisualStyleBackColor = true;
     }
 
     private void UpdateDhcpFields()

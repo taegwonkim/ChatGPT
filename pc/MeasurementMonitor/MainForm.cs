@@ -64,6 +64,8 @@ public partial class MainForm : Form
                 serialPanel.CurrentSettings, CurrentLayout);
             runtimeLayout = new RuntimeLayoutManager(this);
             runtimeLayout.ApplySaved();
+            wifiPanel.EnsureReadButtonEnabled();
+            monitorPanel.RestoreHeaderLayout();
             // 사용자 layout 파일에 예전 색상이 있어도 STATUS/MAC 값 스타일은 고정합니다.
             monitorPanel.ApplyStatusMacStyle();
         };

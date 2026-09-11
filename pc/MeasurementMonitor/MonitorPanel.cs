@@ -5,10 +5,35 @@ public partial class MonitorPanel : UserControl
     public MonitorPanel()
     {
         InitializeComponent();
+        RestoreHeaderLayout();
         ApplyStatusMacStyle();
         dataSplit.SplitterMoved += (_, _) => DataSplitterMoved?.Invoke(this, EventArgs.Empty);
     }
     internal event EventHandler? DataSplitterMoved;
+    internal void RestoreHeaderLayout()
+    {
+        // 이전 WYSIWYG layout 파일이 header 항목을 다른 parent나 화면 밖으로 옮겼어도
+        // STATUS/MAC 영역만큼은 항상 header 안의 정해진 열에 표시합니다.
+        PlaceHeaderControl(autoScroll, 0);
+        PlaceHeaderControl(statusCaption, 1);
+        PlaceHeaderControl(status, 2);
+        PlaceHeaderControl(macAddressCaption, 4);
+        PlaceHeaderControl(macAddress, 5);
+        headerLayout.Visible = true;
+        headerLayout.BringToFront();
+    }
+    private void PlaceHeaderControl(Control control, int column)
+    {
+        if (control.Parent != headerLayout)
+            headerLayout.Controls.Add(control, column, 0);
+        else
+        {
+            headerLayout.SetColumn(control, column);
+            headerLayout.SetRow(control, 0);
+        }
+        control.Dock = DockStyle.None;
+        control.Visible = true;
+    }
     internal void ApplyStatusMacStyle()
     {
         SetValueStyle(status);

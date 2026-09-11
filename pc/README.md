@@ -68,6 +68,8 @@ Wi-Fi와 Measurement의 Read/Write 버튼은 기본적으로 `Size=90,32`, `Font
 
 Monitor 상단에는 STATUS 오른쪽에 간격을 두고 MAC Address가 표시됩니다. MCU가 `<STX>MAC_mac address<CR><LF>` 형식으로 전송하면 `MAC_` 뒤의 값을 MAC 데이터 영역에 표시합니다. 예를 들어 `<STX>MAC_AA:BB:CC:DD:EE:FF<CR><LF>`는 `AA:BB:CC:DD:EE:FF`로 표시됩니다. Auto scroll, `STATUS`, `MAC Address` 제목은 Windows 기본 Control 배경색을 사용하고, MCU에서 받은 STATUS/MAC **값 영역만** 흰색 배경과 검정색 `FixedSingle` 테두리를 사용합니다. Clear 버튼은 두 값 영역을 `-`로 초기화합니다.
 
+Wi-Fi **Read** 버튼은 COM port가 닫혀 있을 때도 화면에서 활성 상태를 유지합니다. 이때 누르면 먼저 port를 열라는 안내가 표시되며, port가 열려 있으면 `<STX>WIFI_R_ALL<CR><LF>`를 전송합니다. 이전 WYSIWYG 배치 파일에 비활성 상태나 화면 밖 위치가 남아 발생하는 문제를 막기 위해 앱 시작 시 Read 버튼 활성 상태와 STATUS/MAC header 배치를 다시 확인합니다.
+
 ### RTC software reset 주기
 
 Measurement 설정 창의 **RTC Reset Period (sec)**에 초 단위 주기를 입력합니다. `0`은 자동 reset OFF이고 최대값은 `31536000`초(365일)입니다.
