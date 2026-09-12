@@ -29,7 +29,7 @@ Visual Studio의 디자인 화면에서는 Solution Explorer의 `MainForm.cs`를
 
 Measurement Panel은 이전에 `Number()`/`MakeLabel()` 같은 helper method로 컨트롤을 생성했기 때문에 실행 화면에는 나타나지만 Visual Studio Designer가 개별 Label과 NumericUpDown을 직렬화하거나 선택하지 못할 수 있었습니다. 현재는 `referenceLabel`, `offsetLabel`, `resistanceLabel`, `intervalLabel`, `rs485OnlyLabel`, `resetIntervalLabel`과 각 입력 및 버튼을 모두 Designer field로 선언하고 `InitializeComponent()`에서 명시적으로 생성합니다. 따라서 `MeasurementPanel.cs`에서 **디자이너 보기**를 선택하면 각 항목을 개별 선택할 수 있습니다.
 
-Measurement의 행/열 크기를 바꾸려면 Designer에서 `grid`를 선택하고 오른쪽 위 smart-tag의 **Edit Rows and Columns...**를 누릅니다. 열은 기본적으로 `120px / 50% / 140px / 50%`, 행은 `34px / 34px / 34px / 38px / 100%`입니다. Absolute 행/열은 픽셀 값을 직접 바꾸고 Percent 항목은 남는 공간의 비율을 바꿉니다. Document Outline(`보기 → 다른 창 → 문서 개요`)에서 `measurementGroup → grid`를 선택하면 겹쳐 있는 컨트롤 때문에 grid 선택이 어려운 경우에도 행/열 편집기를 열 수 있습니다.
+Measurement의 행/열 크기를 바꾸려면 Designer에서 `grid`를 선택하고 오른쪽 위 smart-tag의 **Edit Rows and Columns...**를 누릅니다. 열은 기본적으로 `120px / 50% / 140px / 50%`, 행은 앞의 다섯 행이 각각 `34px`이고 마지막 버튼 행이 `100%`입니다. RTC 값과 단위는 같은 행에, Reset Read/Write 버튼은 그 아래 행에 배치되어 좁은 화면에서도 겹치지 않습니다. Absolute 행/열은 픽셀 값을 직접 바꾸고 Percent 항목은 남는 공간의 비율을 바꿉니다. Document Outline(`보기 → 다른 창 → 문서 개요`)에서 `measurementGroup → grid`를 선택하면 겹쳐 있는 컨트롤 때문에 grid 선택이 어려운 경우에도 행/열 편집기를 열 수 있습니다.
 
 Main Form도 `MainForm.cs` + `MainForm.Designer.cs` 구조로 변경했으므로 `MainForm.cs`에서 **디자이너 보기**를 선택하면 Serial/Wi-Fi/Measurement/Monitor 배치가 표시됩니다. Designer 파일에는 Visual Studio의 CodeDOM parser가 안정적으로 읽을 수 있도록 `new ColumnStyle(...)`, `new RowStyle(...)`, `new object[] { ... }`처럼 타입이 명확한 기존 문법을 사용합니다. `new(...)` target-typed 표현이나 `[ ... ]` collection expression은 프로그램 빌드에는 유효해도 일부 Visual Studio 2022 WinForms Designer 버전에서 파싱 오류를 일으킬 수 있습니다.
 
@@ -80,13 +80,13 @@ Wi-Fi **Read** 버튼은 COM port가 닫혀 있을 때도 화면에서 활성 �
 
 ### RTC software reset 주기
 
-Measurement 설정 창의 **RTC Reset Period (sec)**에 초 단위 주기를 입력합니다. `0`은 자동 reset OFF이고 최대값은 `31536000`초(365일)입니다.
+Measurement 설정 창의 **RTC Reset Period**에서 값과 단위를 설정합니다. 단위 ComboBox는 `Minutes`와 `Hours` 중 하나를 선택할 수 있고 기본값은 `Minutes`입니다. `0`은 자동 reset OFF이며 최대값은 `525600 Minutes` 또는 `8760 Hours`(365일)입니다.
 
 - **Reset Read**: `<STX>RESET_R_ALL<CR><LF>` 전송
 - **Reset Write**: `<STX>RESET_W_ALL,seconds<CR><LF>` 전송
 - MCU 응답: `<STX>RESET_R_ALL,seconds<CR><LF>`
 
-응답값은 MCU 수신 데이터 창으로 보내지 않고 RTC Reset Period 입력란에 표시되며 PC 설정 파일에도 저장됩니다. 실제 reset은 STM32 펌웨어의 RTC wake-up timer가 수행합니다.
+PC 화면에서는 분/시간 단위를 사용하지만 MCU와의 wire protocol은 기존 호환성을 위해 계속 **초 단위**를 사용합니다. 예를 들어 `10 Minutes`는 `<STX>RESET_W_ALL,600<CR><LF>`, `2 Hours`는 `<STX>RESET_W_ALL,7200<CR><LF>`로 전송됩니다. Read 응답이 3600초로 나누어떨어지면 Hours로, 그 외에는 Minutes로 자동 표시합니다. 응답값은 MCU 수신 데이터 창으로 보내지 않고 RTC Reset Period 입력란에 표시되며 PC 설정 파일에도 초 단위로 저장됩니다. 실제 reset은 STM32 펌웨어의 RTC wake-up timer가 수행합니다.
 
 STATUS/MAC 값 영역의 `BackColor=White`, `ForeColor=Black`, `BorderStyle=FixedSingle`은 생성 시와 사용자 배치 복원 직후 다시 강제 적용됩니다. 따라서 이전 `control-layout.json`에 다른 색상이 저장되어 있어도 흰색 배경과 검정색 글자/테두리가 유지됩니다. 화면 배치 편집기 역시 이 두 값 영역의 저장 색상은 시작 시 적용하지 않습니다.
 

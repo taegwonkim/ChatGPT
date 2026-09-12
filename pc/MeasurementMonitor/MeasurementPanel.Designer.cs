@@ -17,6 +17,7 @@ partial class MeasurementPanel
     private NumericUpDown interval = null!;
     private ComboBox rs485Only = null!;
     private NumericUpDown resetInterval = null!;
+    private ComboBox resetUnit = null!;
     private Button resetReadButton = null!;
     private Button resetWriteButton = null!;
     private Button readButton = null!;
@@ -45,6 +46,7 @@ partial class MeasurementPanel
         interval = new NumericUpDown();
         rs485Only = new ComboBox();
         resetInterval = new NumericUpDown();
+        resetUnit = new ComboBox();
         resetReadButton = new Button();
         resetWriteButton = new Button();
         readButton = new Button();
@@ -83,17 +85,19 @@ partial class MeasurementPanel
         grid.Controls.Add(rs485Only, 1, 2);
         grid.Controls.Add(resetIntervalLabel, 0, 3);
         grid.Controls.Add(resetInterval, 1, 3);
-        grid.Controls.Add(resetReadButton, 2, 3);
-        grid.Controls.Add(resetWriteButton, 3, 3);
-        grid.Controls.Add(readButton, 1, 4);
-        grid.Controls.Add(writeButton, 2, 4);
+        grid.Controls.Add(resetUnit, 2, 3);
+        grid.Controls.Add(resetReadButton, 1, 4);
+        grid.Controls.Add(resetWriteButton, 2, 4);
+        grid.Controls.Add(readButton, 1, 5);
+        grid.Controls.Add(writeButton, 2, 5);
         grid.Dock = DockStyle.Fill;
         grid.Name = "grid";
-        grid.RowCount = 5;
+        grid.RowCount = 6;
         grid.RowStyles.Add(new RowStyle(SizeType.Absolute, 34F));
         grid.RowStyles.Add(new RowStyle(SizeType.Absolute, 34F));
         grid.RowStyles.Add(new RowStyle(SizeType.Absolute, 34F));
-        grid.RowStyles.Add(new RowStyle(SizeType.Absolute, 38F));
+        grid.RowStyles.Add(new RowStyle(SizeType.Absolute, 34F));
+        grid.RowStyles.Add(new RowStyle(SizeType.Absolute, 34F));
         grid.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
         grid.TabIndex = 0;
 
@@ -120,7 +124,7 @@ partial class MeasurementPanel
         resetIntervalLabel.Anchor = AnchorStyles.Left;
         resetIntervalLabel.AutoSize = true;
         resetIntervalLabel.Name = "resetIntervalLabel";
-        resetIntervalLabel.Text = "RTC Reset Period (sec)";
+        resetIntervalLabel.Text = "RTC Reset Period";
 
         reference.Anchor = AnchorStyles.Left | AnchorStyles.Right;
         reference.DecimalPlaces = 1;
@@ -146,9 +150,15 @@ partial class MeasurementPanel
         interval.ThousandsSeparator = true;
         interval.Value = 1M;
         resetInterval.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-        resetInterval.Maximum = 31536000M;
+        resetInterval.DecimalPlaces = 3;
+        resetInterval.Maximum = 525600M;
         resetInterval.Name = "resetInterval";
         resetInterval.ThousandsSeparator = true;
+        resetUnit.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+        resetUnit.DropDownStyle = ComboBoxStyle.DropDownList;
+        resetUnit.Items.AddRange(new object[] { "Minutes", "Hours" });
+        resetUnit.Name = "resetUnit";
+        resetUnit.SelectedIndex = 0;
 
         rs485Only.Anchor = AnchorStyles.Left | AnchorStyles.Right;
         rs485Only.DropDownStyle = ComboBoxStyle.DropDownList;
