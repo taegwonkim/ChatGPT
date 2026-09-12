@@ -27,6 +27,10 @@ Visual Studio의 디자인 화면에서는 Solution Explorer의 `MainForm.cs`를
 
 기존에는 `WifiPanel`만 실제 `UserControl`/`.Designer.cs` 구조이고 나머지 panel은 `GroupBox`를 상속해 생성자에서 컨트롤을 동적으로 만들었습니다. `.csproj`의 `SubType`만 `UserControl`로 지정해도 WinForms 디자인 루트가 만들어지는 것은 아니므로 나머지는 Component Designer 안내 화면이 표시되었습니다. 현재는 네 panel 모두 실제 `UserControl` partial class와 `InitializeComponent()`를 사용하도록 변경했습니다.
 
+Measurement Panel은 이전에 `Number()`/`MakeLabel()` 같은 helper method로 컨트롤을 생성했기 때문에 실행 화면에는 나타나지만 Visual Studio Designer가 개별 Label과 NumericUpDown을 직렬화하거나 선택하지 못할 수 있었습니다. 현재는 `referenceLabel`, `offsetLabel`, `resistanceLabel`, `intervalLabel`, `rs485OnlyLabel`, `resetIntervalLabel`과 각 입력 및 버튼을 모두 Designer field로 선언하고 `InitializeComponent()`에서 명시적으로 생성합니다. 따라서 `MeasurementPanel.cs`에서 **디자이너 보기**를 선택하면 각 항목을 개별 선택할 수 있습니다.
+
+Measurement의 행/열 크기를 바꾸려면 Designer에서 `grid`를 선택하고 오른쪽 위 smart-tag의 **Edit Rows and Columns...**를 누릅니다. 열은 기본적으로 `120px / 50% / 140px / 50%`, 행은 `34px / 34px / 34px / 38px / 100%`입니다. Absolute 행/열은 픽셀 값을 직접 바꾸고 Percent 항목은 남는 공간의 비율을 바꿉니다. Document Outline(`보기 → 다른 창 → 문서 개요`)에서 `measurementGroup → grid`를 선택하면 겹쳐 있는 컨트롤 때문에 grid 선택이 어려운 경우에도 행/열 편집기를 열 수 있습니다.
+
 Main Form도 `MainForm.cs` + `MainForm.Designer.cs` 구조로 변경했으므로 `MainForm.cs`에서 **디자이너 보기**를 선택하면 Serial/Wi-Fi/Measurement/Monitor 배치가 표시됩니다. Designer 파일에는 Visual Studio의 CodeDOM parser가 안정적으로 읽을 수 있도록 `new ColumnStyle(...)`, `new RowStyle(...)`, `new object[] { ... }`처럼 타입이 명확한 기존 문법을 사용합니다. `new(...)` target-typed 표현이나 `[ ... ]` collection expression은 프로그램 빌드에는 유효해도 일부 Visual Studio 2022 WinForms Designer 버전에서 파싱 오류를 일으킬 수 있습니다.
 
 ## Panel 크기 변경
