@@ -150,7 +150,7 @@ partial class MeasurementPanel
         interval.ThousandsSeparator = true;
         interval.Value = 1M;
         resetInterval.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-        resetInterval.DecimalPlaces = 3;
+        resetInterval.DecimalPlaces = 0;
         resetInterval.Maximum = 525600M;
         resetInterval.Name = "resetInterval";
         resetInterval.ThousandsSeparator = true;

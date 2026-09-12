@@ -79,10 +79,12 @@ void HAL_RTCEx_WakeUpTimerEventCallback(RTC_HandleTypeDef *hrtc)
 
 ## RTC 주기 software reset
 
-PC는 USART3으로 `<STX>RESET_R_ALL<CR><LF>`를 보내 저장된 주기를 읽고,
-`<STX>RESET_W_ALL,seconds<CR><LF>`로 새 주기를 설정합니다. MCU 응답은
-`<STX>RESET_R_ALL,seconds<CR><LF>`입니다. `seconds=0`은 자동 reset OFF이며 허용 범위는
-`0`~`31536000`초(365일)입니다. 설정은 RTC backup register에 저장되므로 software reset 후에도 유지됩니다.
+PC는 선택한 단위에 따라 USART3 명령을 구분해서 전송합니다. 분 단위는
+`<STX>RTC_R_M<CR><LF>` / `<STX>RTC_W_M,minutes<CR><LF>`, 시간 단위는
+`<STX>RTC_R_H<CR><LF>` / `<STX>RTC_W_H,hours<CR><LF>`입니다. MCU 응답도 각각
+`<STX>RTC_R_M,minutes<CR><LF>` 또는 `<STX>RTC_R_H,hours<CR><LF>`입니다. 값 `0`은
+자동 reset OFF이며 최대값은 525600분 또는 8760시간(365일)입니다. 내부에서는 초로
+변환해 RTC timer를 설정하고 backup register에 저장하므로 software reset 후에도 유지됩니다.
 
 RTC wake-up timer의 16-bit 한계를 넘는 주기는 최대 65536초 단위로 나눠 예약합니다.
 주기가 끝나면 RTC wake-up interrupt에서 `NVIC_SystemReset()`을 호출합니다. 전원 제거 후에도

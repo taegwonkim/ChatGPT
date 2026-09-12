@@ -33,9 +33,9 @@ public partial class MainForm : Form
         wifiPanel.WriteRequested += (_, value) => WriteWifi(value);
         measurementPanel.ReadRequested += (_, _) => SendRead(PendingRead.Measurement, DeviceProtocol.MeasurementRead());
         measurementPanel.WriteRequested += (_, value) => WriteMeasurement(value);
-        measurementPanel.ResetReadRequested += (_, _) =>
-            SendRead(PendingRead.Reset, DeviceProtocol.ResetRead());
-        measurementPanel.ResetWriteRequested += (_, seconds) => WriteResetInterval(seconds);
+        measurementPanel.ResetReadRequested += (_, unit) =>
+            SendRead(PendingRead.Reset, DeviceProtocol.ResetRead(unit));
+        measurementPanel.ResetWriteRequested += (_, setting) => WriteResetInterval(setting);
         port.DataReceived += PortDataReceived;
         FormClosing += (_, _) =>
         {
@@ -127,11 +127,11 @@ public partial class MainForm : Form
         if (!AppSettingsStore.Save(new(wifi, measurement, serial, layout, savedResetInterval)))
             monitorPanel.AddOther("[PC 설정 저장 실패] settings.json 파일을 기록할 수 없습니다.");
     }
-    private void WriteResetInterval(uint seconds)
+    private void WriteResetInterval(ResetPeriodSetting setting)
     {
-        savedResetInterval = seconds;
+        savedResetInterval = setting.TotalSeconds;
         SaveSettings(savedWifi, savedMeasurement, savedSerial, CurrentLayout);
-        TrySend(() => DeviceProtocol.ResetWrite(seconds));
+        TrySend(() => DeviceProtocol.ResetWrite(setting));
     }
     private LayoutSettings CurrentLayout => new(contentSplit.SplitterDistance,
         settingsSplit.SplitterDistance, monitorPanel.DataSplitterDistance);
@@ -193,11 +193,11 @@ public partial class MainForm : Form
         // MAC frame은 원문을 기타 데이터 창에 남기면서 값만 별도 MAC 영역에도 표시합니다.
         if (DeviceProtocol.TryParseMacAddress(frame, out string macAddress))
             monitorPanel.AddMacFrame(frame, macAddress, received.HasStx);
-        else if (received.HasStx && DeviceProtocol.TryParseResetSettings(frame, out uint resetSeconds))
+        else if (received.HasStx && DeviceProtocol.TryParseResetSettings(frame, out ResetPeriodSetting resetSetting))
         {
             pendingRead = PendingRead.None;
-            savedResetInterval = resetSeconds;
-            measurementPanel.ApplyResetInterval(resetSeconds);
+            savedResetInterval = resetSetting.TotalSeconds;
+            measurementPanel.ApplyResetPeriod(resetSetting);
             SaveSettings(savedWifi, savedMeasurement, savedSerial, CurrentLayout);
         }
         else if (received.HasStx && DeviceProtocol.TryParseWifiSettings(frame, out WifiSettings? wifi) && wifi is not null)

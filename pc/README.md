@@ -82,11 +82,13 @@ Wi-Fi **Read** 버튼은 COM port가 닫혀 있을 때도 화면에서 활성 �
 
 Measurement 설정 창의 **RTC Reset Period**에서 값과 단위를 설정합니다. 단위 ComboBox는 `Minutes`와 `Hours` 중 하나를 선택할 수 있고 기본값은 `Minutes`입니다. `0`은 자동 reset OFF이며 최대값은 `525600 Minutes` 또는 `8760 Hours`(365일)입니다.
 
-- **Reset Read**: `<STX>RESET_R_ALL<CR><LF>` 전송
-- **Reset Write**: `<STX>RESET_W_ALL,seconds<CR><LF>` 전송
-- MCU 응답: `<STX>RESET_R_ALL,seconds<CR><LF>`
+- **Minutes Read**: `<STX>RTC_R_M<CR><LF>` 전송
+- **Minutes Write**: `<STX>RTC_W_M,minutes<CR><LF>` 전송
+- **Hours Read**: `<STX>RTC_R_H<CR><LF>` 전송
+- **Hours Write**: `<STX>RTC_W_H,hours<CR><LF>` 전송
+- MCU 응답: `<STX>RTC_R_M,minutes<CR><LF>` 또는 `<STX>RTC_R_H,hours<CR><LF>`
 
-PC 화면에서는 분/시간 단위를 사용하지만 MCU와의 wire protocol은 기존 호환성을 위해 계속 **초 단위**를 사용합니다. 예를 들어 `10 Minutes`는 `<STX>RESET_W_ALL,600<CR><LF>`, `2 Hours`는 `<STX>RESET_W_ALL,7200<CR><LF>`로 전송됩니다. Read 응답이 3600초로 나누어떨어지면 Hours로, 그 외에는 Minutes로 자동 표시합니다. 응답값은 MCU 수신 데이터 창으로 보내지 않고 RTC Reset Period 입력란에 표시되며 PC 설정 파일에도 초 단위로 저장됩니다. 실제 reset은 STM32 펌웨어의 RTC wake-up timer가 수행합니다.
+선택 단위에 따라 command와 값 단위가 함께 달라집니다. 예를 들어 `10 Minutes`는 `<STX>RTC_W_M,10<CR><LF>`, `2 Hours`는 `<STX>RTC_W_H,2<CR><LF>`로 전송됩니다. Read도 현재 ComboBox에서 선택한 단위의 command를 보내며, 응답에 포함된 `M` 또는 `H`에 맞춰 값과 단위를 그대로 표시합니다. PC 설정 파일과 STM32 내부 RTC timer에서는 안전한 계산을 위해 초 단위 환산값도 유지합니다.
 
 STATUS/MAC 값 영역의 `BackColor=White`, `ForeColor=Black`, `BorderStyle=FixedSingle`은 생성 시와 사용자 배치 복원 직후 다시 강제 적용됩니다. 따라서 이전 `control-layout.json`에 다른 색상이 저장되어 있어도 흰색 배경과 검정색 글자/테두리가 유지됩니다. 화면 배치 편집기 역시 이 두 값 영역의 저장 색상은 시작 시 적용하지 않습니다.
 
@@ -94,7 +96,7 @@ MAC Address의 `Location`을 직접 바꾸면 원위치로 돌아가는 이유�
 
 Designer에서 `if (value < control.Minimum)` 또는 `Math.Min(control.Maximum, Math.Max(control.Minimum, value))`가 표시되는 것은 Measurement/Reset 저장값을 `NumericUpDown`의 허용 범위로 제한하는 코드가 호출 스택에 잡힌 것입니다. 소스 편집기가 비교문을 강조하더라도 실제 원인은 바로 뒤의 `NumericUpDown.Value` 대입이나 Designer의 실행용 설정 복원일 수 있습니다. 범위 제한 계산은 값이 Minimum보다 작으면 Minimum, Maximum보다 크면 Maximum을 선택한다는 뜻입니다.
 
-`RESET_R_ALL`/`RESET_W_ALL` 문자열을 수정한 것 자체는 `NumericUpDown` 범위 예외의 직접 원인이 아닙니다. 이 예외는 이전 `settings.json`에 남은 값, MCU가 보낸 범위 밖의 값, 또는 Visual Studio Designer가 실행용 설정 복원 코드를 호출할 때 주로 발생합니다. 현재 코드는 VS 2022의 `devenv` 및 `DesignToolsServer` process를 디자인 모드로 판별하여 Designer에서는 설정 파일을 읽지 않으며, 실행 중에는 Minimum/Maximum을 먼저 읽은 뒤 유효 범위로 제한한 값만 `NumericUpDown.Value`에 적용합니다. 문제가 지속되면 앱을 종료하고 `%LOCALAPPDATA%\STM32MeasurementMonitor\settings.json`을 삭제한 뒤 다시 실행하면 저장값이 기본값으로 초기화됩니다.
+RTC command 문자열을 수정한 것 자체는 `NumericUpDown` 범위 예외의 직접 원인이 아닙니다. 이 예외는 이전 `settings.json`에 남은 값, MCU가 보낸 범위 밖의 값, 또는 Visual Studio Designer가 실행용 설정 복원 코드를 호출할 때 주로 발생합니다. 현재 PC app은 `RTC_R_M`/`RTC_W_M` 및 `RTC_R_H`/`RTC_W_H`를 사용하며, 펌웨어만 구버전 PC와의 호환성을 위해 `RESET_R_ALL`/`RESET_W_ALL`도 계속 인식합니다. 현재 코드는 VS 2022의 `devenv` 및 `DesignToolsServer` process를 디자인 모드로 판별하여 Designer에서는 설정 파일을 읽지 않으며, 실행 중에는 Minimum/Maximum을 먼저 읽은 뒤 유효 범위로 제한한 값만 `NumericUpDown.Value`에 적용합니다. 문제가 지속되면 앱을 종료하고 `%LOCALAPPDATA%\STM32MeasurementMonitor\settings.json`을 삭제한 뒤 다시 실행하면 저장값이 기본값으로 초기화됩니다.
 
 Read 버튼과 Write 버튼은 서로 다른 command를 전송합니다.
 

@@ -17,21 +17,31 @@ internal static class DeviceProtocol
 
     internal static byte[] MeasurementRead() => Frame("MEAS_R_ALL");
 
-    internal static byte[] ResetRead() => Frame("RESET_R_ALL");
+    internal static byte[] ResetRead(ResetTimeUnit unit) =>
+        Frame(unit == ResetTimeUnit.Hours ? "RTC_R_H" : "RTC_R_M");
 
-    internal static byte[] ResetWrite(uint seconds) =>
-        Frame($"RESET_W_ALL,{seconds.ToString(CultureInfo.InvariantCulture)}");
+    internal static byte[] ResetWrite(ResetPeriodSetting value) => Frame(string.Join(',',
+        value.Unit == ResetTimeUnit.Hours ? "RTC_W_H" : "RTC_W_M",
+        value.Value.ToString(CultureInfo.InvariantCulture)));
 
-    internal static bool TryParseResetSettings(string frame, out uint seconds)
+    internal static bool TryParseResetSettings(string frame, out ResetPeriodSetting value)
     {
-        seconds = 0;
+        value = default;
         string text = frame.Trim();
-        foreach (string command in new[] { "RESET_R_ALL", "RESET_W_ALL" })
+        foreach ((string command, ResetTimeUnit unit, uint maximum) in new[]
+        {
+            ("RTC_R_M", ResetTimeUnit.Minutes, 525600U),
+            ("RTC_W_M", ResetTimeUnit.Minutes, 525600U),
+            ("RTC_R_H", ResetTimeUnit.Hours, 8760U),
+            ("RTC_W_H", ResetTimeUnit.Hours, 8760U)
+        })
         {
             if (!text.StartsWith(command, StringComparison.OrdinalIgnoreCase)) continue;
             text = text[command.Length..].TrimStart(' ', ',', ':', '=');
-            return uint.TryParse(text.TrimEnd(','), NumberStyles.None,
-                CultureInfo.InvariantCulture, out seconds) && seconds <= 31536000U;
+            if (!uint.TryParse(text.TrimEnd(','), NumberStyles.None,
+                CultureInfo.InvariantCulture, out uint period) || period > maximum) return false;
+            value = new(period, unit);
+            return true;
         }
         return false;
     }
@@ -168,6 +178,12 @@ internal sealed record WifiSettings(string Ssid, string Password, string ServerI
 
 internal sealed record MeasurementSettings(decimal ReferenceMv, decimal OffsetMv,
     decimal ResistanceMilliOhm, decimal IntervalSeconds, bool Rs485Only = false);
+
+internal enum ResetTimeUnit { Minutes, Hours }
+internal readonly record struct ResetPeriodSetting(uint Value, ResetTimeUnit Unit)
+{
+    internal uint TotalSeconds => checked(Value * (Unit == ResetTimeUnit.Hours ? 3600U : 60U));
+}
 
 internal readonly record struct ReceivedFrame(string Payload, bool HasStx);
 

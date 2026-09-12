@@ -11,6 +11,14 @@
 #define RESET_BACKUP_MAGIC        0x52535431UL /* "RST1" */
 #define RESET_RX_MAX              64U
 #define RESET_TX_TIMEOUT_MS       100U
+#define RESET_MAX_MINUTES         525600UL
+#define RESET_MAX_HOURS           8760UL
+
+typedef enum {
+    RESET_RESPONSE_SECONDS,
+    RESET_RESPONSE_MINUTES,
+    RESET_RESPONSE_HOURS
+} reset_response_unit_t;
 
 static uint8_t rx_byte;
 static char rx_build[RESET_RX_MAX];
@@ -81,11 +89,21 @@ bool App_ResetInit(void)
     return App_ResetSetPeriod(saved_period);
 }
 
-static void send_period_response(void)
+static void send_period_response(reset_response_unit_t unit)
 {
     char response[40];
-    int length = snprintf(response, sizeof(response), "\x02RESET_R_ALL,%lu\r\n",
-        (unsigned long)reset_period_seconds);
+    const char *command = "RESET_R_ALL";
+    uint32_t value = reset_period_seconds;
+
+    if (unit == RESET_RESPONSE_MINUTES) {
+        command = "RTC_R_M";
+        value /= 60U;
+    } else if (unit == RESET_RESPONSE_HOURS) {
+        command = "RTC_R_H";
+        value /= 3600U;
+    }
+    int length = snprintf(response, sizeof(response), "\x02%s,%lu\r\n", command,
+        (unsigned long)value);
     if (length > 0 && (size_t)length < sizeof(response)) {
         (void)HAL_UART_Transmit(&huart3, (uint8_t *)response,
             (uint16_t)length, RESET_TX_TIMEOUT_MS);
@@ -96,7 +114,7 @@ void App_ResetProcess(void)
 {
     char local[RESET_RX_MAX];
     char trailing;
-    unsigned long seconds;
+    unsigned long value;
 
     if (!command_ready) {
         return;
@@ -106,12 +124,25 @@ void App_ResetProcess(void)
     command_ready = false;
     __enable_irq();
 
-    if (strcmp(local, "RESET_R_ALL") == 0) {
-        send_period_response();
-    } else if (sscanf(local, "RESET_W_ALL,%lu%c", &seconds, &trailing) == 1 &&
-               seconds <= RESET_PERIOD_MAX_SECONDS &&
-               App_ResetSetPeriod((uint32_t)seconds)) {
-        send_period_response();
+    if (strcmp(local, "RTC_R_M") == 0) {
+        send_period_response(RESET_RESPONSE_MINUTES);
+    } else if (strcmp(local, "RTC_R_H") == 0) {
+        send_period_response(RESET_RESPONSE_HOURS);
+    } else if (sscanf(local, "RTC_W_M,%lu%c", &value, &trailing) == 1 &&
+               value <= RESET_MAX_MINUTES &&
+               App_ResetSetPeriod((uint32_t)(value * 60UL))) {
+        send_period_response(RESET_RESPONSE_MINUTES);
+    } else if (sscanf(local, "RTC_W_H,%lu%c", &value, &trailing) == 1 &&
+               value <= RESET_MAX_HOURS &&
+               App_ResetSetPeriod((uint32_t)(value * 3600UL))) {
+        send_period_response(RESET_RESPONSE_HOURS);
+    /* 이전 PC app과의 호환성을 위해 초 단위 명령도 계속 허용합니다. */
+    } else if (strcmp(local, "RESET_R_ALL") == 0) {
+        send_period_response(RESET_RESPONSE_SECONDS);
+    } else if (sscanf(local, "RESET_W_ALL,%lu%c", &value, &trailing) == 1 &&
+               value <= RESET_PERIOD_MAX_SECONDS &&
+               App_ResetSetPeriod((uint32_t)value)) {
+        send_period_response(RESET_RESPONSE_SECONDS);
     }
 }
 
