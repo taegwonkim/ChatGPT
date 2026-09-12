@@ -23,8 +23,7 @@ public partial class MainForm : Form
         InitializeComponent();
 
         // WinForms Designer가 Form을 생성할 때 사용자 설정 파일/통신 로직을 실행하지 않습니다.
-        if (System.ComponentModel.LicenseManager.UsageMode ==
-            System.ComponentModel.LicenseUsageMode.Designtime)
+        if (IsInVisualStudioDesigner())
             return;
 
         serialPanel.OpenCloseRequested += (_, _) => TogglePort();
@@ -69,6 +68,19 @@ public partial class MainForm : Form
             // 사용자 layout 파일에 예전 색상이 있어도 STATUS/MAC 값 스타일은 고정합니다.
             monitorPanel.ApplyStatusMacStyle();
         };
+    }
+
+    private static bool IsInVisualStudioDesigner()
+    {
+        if (System.ComponentModel.LicenseManager.UsageMode ==
+            System.ComponentModel.LicenseUsageMode.Designtime)
+            return true;
+
+        // VS 2022의 out-of-process WinForms Designer에서는 LicenseManager가 Runtime을
+        // 반환할 수 있으므로 host process 이름도 확인합니다.
+        string processName = Path.GetFileNameWithoutExtension(Environment.ProcessPath) ?? string.Empty;
+        return processName.Equals("devenv", StringComparison.OrdinalIgnoreCase) ||
+            processName.Contains("DesignToolsServer", StringComparison.OrdinalIgnoreCase);
     }
 
     private void TogglePort()

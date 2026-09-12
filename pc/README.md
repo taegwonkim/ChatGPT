@@ -84,7 +84,9 @@ STATUS/MAC 값 영역의 `BackColor=White`, `ForeColor=Black`, `BorderStyle=Fixe
 
 MAC Address의 `Location`을 직접 바꾸면 원위치로 돌아가는 이유는 layout container가 자식 위치를 자동 계산하기 때문입니다. `TableLayoutPanel(headerLayout)`에서 STATUS 값과 MAC Address 제목 사이에 폭 `80px`의 빈 열을 두었습니다. 간격을 바꾸려면 MonitorPanel Designer에서 `headerLayout`을 선택하고 **Edit Rows and Columns → 네 번째 열(Absolute)의 Width**를 변경하십시오. MAC label의 `Location`을 직접 수정할 필요가 없습니다.
 
-Designer에서 `Math.Min(control.Maximum, Math.Max(control.Minimum, value))`가 표시된 것은 저장된 Measurement 값이 NumericUpDown 범위를 벗어나지 않도록 최소/최대 범위로 제한하던 `Clamp()` 코드 위치가 Designer 오류/호출 스택에 나타난 것입니다. 계산식 자체는 최소값보다 작으면 Minimum, 최대값보다 크면 Maximum을 선택한다는 뜻입니다. Designer가 MainForm을 미리 생성하면서 PC 저장 설정을 읽고 `MeasurementPanel.Apply()`를 실행한 것이 원인이 될 수 있어, 디자인 모드에서는 설정 로드와 통신 이벤트 연결을 실행하지 않도록 변경했습니다. Clamp도 동일한 동작을 명시적인 if 문으로 바꿔 오류 위치를 이해하기 쉽게 했습니다.
+Designer에서 `if (value < control.Minimum)` 또는 `Math.Min(control.Maximum, Math.Max(control.Minimum, value))`가 표시되는 것은 Measurement/Reset 저장값을 `NumericUpDown`의 허용 범위로 제한하는 코드가 호출 스택에 잡힌 것입니다. 소스 편집기가 비교문을 강조하더라도 실제 원인은 바로 뒤의 `NumericUpDown.Value` 대입이나 Designer의 실행용 설정 복원일 수 있습니다. 범위 제한 계산은 값이 Minimum보다 작으면 Minimum, Maximum보다 크면 Maximum을 선택한다는 뜻입니다.
+
+`RESET_R_ALL`/`RESET_W_ALL` 문자열을 수정한 것 자체는 `NumericUpDown` 범위 예외의 직접 원인이 아닙니다. 이 예외는 이전 `settings.json`에 남은 값, MCU가 보낸 범위 밖의 값, 또는 Visual Studio Designer가 실행용 설정 복원 코드를 호출할 때 주로 발생합니다. 현재 코드는 VS 2022의 `devenv` 및 `DesignToolsServer` process를 디자인 모드로 판별하여 Designer에서는 설정 파일을 읽지 않으며, 실행 중에는 Minimum/Maximum을 먼저 읽은 뒤 유효 범위로 제한한 값만 `NumericUpDown.Value`에 적용합니다. 문제가 지속되면 앱을 종료하고 `%LOCALAPPDATA%\STM32MeasurementMonitor\settings.json`을 삭제한 뒤 다시 실행하면 저장값이 기본값으로 초기화됩니다.
 
 Read 버튼과 Write 버튼은 서로 다른 command를 전송합니다.
 

@@ -20,23 +20,29 @@ public partial class MeasurementPanel : UserControl
 
     internal void Apply(MeasurementSettings value)
     {
-        reference.Value = Clamp(reference, value.ReferenceMv);
-        offset.Value = Clamp(offset, value.OffsetMv);
-        resistance.Value = Clamp(resistance, value.ResistanceMilliOhm);
-        interval.Value = Clamp(interval, value.IntervalSeconds);
+        SetValueWithinRange(reference, value.ReferenceMv);
+        SetValueWithinRange(offset, value.OffsetMv);
+        SetValueWithinRange(resistance, value.ResistanceMilliOhm);
+        SetValueWithinRange(interval, value.IntervalSeconds);
         rs485Only.SelectedIndex = value.Rs485Only ? 1 : 0;
     }
     internal MeasurementSettings CurrentSettings => new(reference.Value, offset.Value,
         resistance.Value, interval.Value, rs485Only.SelectedIndex == 1);
     internal uint ResetIntervalSeconds => (uint)resetInterval.Value;
     internal void ApplyResetInterval(uint seconds) =>
-        resetInterval.Value = Clamp(resetInterval, seconds);
+        SetValueWithinRange(resetInterval, seconds);
 
-    private static decimal Clamp(NumericUpDown control, decimal value)
+    private static void SetValueWithinRange(NumericUpDown control, decimal requestedValue)
     {
-        if (value < control.Minimum) return control.Minimum;
-        if (value > control.Maximum) return control.Maximum;
-        return value;
+        if (control.IsDisposed || control.Disposing) return;
+
+        // Minimum/Maximum을 먼저 snapshot한 뒤 범위를 제한합니다. 저장 파일이나 MCU
+        // 응답값이 UI 범위를 벗어나도 NumericUpDown.Value에는 유효한 값만 전달됩니다.
+        decimal minimum = control.Minimum;
+        decimal maximum = control.Maximum;
+        decimal boundedValue = Math.Min(maximum, Math.Max(minimum, requestedValue));
+        if (control.Value != boundedValue)
+            control.Value = boundedValue;
     }
 
 }
