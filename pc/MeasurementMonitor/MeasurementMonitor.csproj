@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <LangVersion>12.0</LangVersion>
+    <Platforms>AnyCPU;x64;x86</Platforms>
+    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
+    <StartupObject>MeasurementMonitor.Program</StartupObject>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="System.IO.Ports" Version="8.0.0" />
+  </ItemGroup>
+  <!-- Visual Studio 2022 Solution Explorer에서 Form/Panel designer 항목으로 표시합니다. -->
+  <ItemGroup>
+    <Compile Update="MainForm.cs"><SubType>Form</SubType></Compile>
+    <Compile Update="MainForm.Designer.cs"><DependentUpon>MainForm.cs</DependentUpon></Compile>
+    <Compile Update="SerialPanel.cs"><SubType>UserControl</SubType></Compile>
+    <Compile Update="SerialPanel.Designer.cs"><DependentUpon>SerialPanel.cs</DependentUpon></Compile>
+    <Compile Update="WifiPanel.cs"><SubType>UserControl</SubType></Compile>
+    <Compile Update="WifiPanel.Designer.cs">
+      <DependentUpon>WifiPanel.cs</DependentUpon>
+    </Compile>
+    <Compile Update="MeasurementPanel.cs"><SubType>UserControl</SubType></Compile>
+    <Compile Update="MeasurementPanel.Designer.cs"><DependentUpon>MeasurementPanel.cs</DependentUpon></Compile>
+    <Compile Update="MonitorPanel.cs"><SubType>UserControl</SubType></Compile>
+    <Compile Update="MonitorPanel.Designer.cs"><DependentUpon>MonitorPanel.cs</DependentUpon></Compile>
+    <Compile Update="AppSettingsStore.cs"><SubType>Code</SubType></Compile>
+    <Compile Update="RuntimeLayoutManager.cs"><SubType>Code</SubType></Compile>
+    <Compile Update="LayoutEditorForm.cs"><SubType>Form</SubType></Compile>
+  </ItemGroup>
+</Project>
