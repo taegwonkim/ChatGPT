@@ -33,8 +33,8 @@ internal sealed class LayoutEditorForm : Form
     {
         foreach (KeyValuePair<string, Control> item in manager.Controls.OrderBy(item => item.Key))
         {
-            if (item.Value is not (Label or TextBox or ComboBox or Button or CheckBox or
-                NumericUpDown or UserControl)) continue;
+            if (item.Value is not (Label or TextBox or RichTextBox or ComboBox or Button or
+                CheckBox or NumericUpDown or SplitContainer or TableLayoutPanel or UserControl)) continue;
             string text = string.IsNullOrWhiteSpace(item.Value.Text)
                 ? $"{item.Value.GetType().Name} ({item.Value.Name})"
                 : $"{item.Value.Text} ({item.Value.Name})";
