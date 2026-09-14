@@ -62,8 +62,10 @@ partial class MeasurementPanel
 
         measurementGroup.Controls.Add(grid);
         measurementGroup.Dock = DockStyle.Fill;
+        measurementGroup.Location = new Point(0, 0);
         measurementGroup.Name = "measurementGroup";
         measurementGroup.Padding = new Padding(10);
+        measurementGroup.Size = new Size(520, 230);
         measurementGroup.TabIndex = 0;
         measurementGroup.TabStop = false;
         measurementGroup.Text = "Measurement 설정";
@@ -91,6 +93,7 @@ partial class MeasurementPanel
         grid.Controls.Add(readButton, 1, 5);
         grid.Controls.Add(writeButton, 2, 5);
         grid.Dock = DockStyle.Fill;
+        grid.Location = new Point(10, 26);
         grid.Name = "grid";
         grid.RowCount = 6;
         grid.RowStyles.Add(new RowStyle(SizeType.Absolute, 34F));
@@ -99,6 +102,7 @@ partial class MeasurementPanel
         grid.RowStyles.Add(new RowStyle(SizeType.Absolute, 34F));
         grid.RowStyles.Add(new RowStyle(SizeType.Absolute, 34F));
         grid.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+        grid.Size = new Size(500, 194);
         grid.TabIndex = 0;
 
         referenceLabel.Anchor = AnchorStyles.Left;

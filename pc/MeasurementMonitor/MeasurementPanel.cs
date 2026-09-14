@@ -4,8 +4,8 @@ public partial class MeasurementPanel : UserControl
 {
     internal event EventHandler? ReadRequested;
     internal event EventHandler<MeasurementSettings>? WriteRequested;
-    internal event EventHandler<ResetTimeUnit>? ResetReadRequested;
-    internal event EventHandler<ResetPeriodSetting>? ResetWriteRequested;
+    internal event Action<ResetTimeUnit>? ResetReadRequested;
+    internal event Action<ResetPeriodSetting>? ResetWriteRequested;
 
     public MeasurementPanel()
     {
@@ -14,7 +14,7 @@ public partial class MeasurementPanel : UserControl
         writeButton.Click += (_, _) => WriteRequested?.Invoke(this,
             new(reference.Value, offset.Value, resistance.Value, interval.Value,
                 rs485Only.SelectedIndex == 1));
-        resetReadButton.Click += (_, _) => ResetReadRequested?.Invoke(this, SelectedResetUnit);
+        resetReadButton.Click += (_, _) => ResetReadRequested?.Invoke(SelectedResetUnit);
         resetWriteButton.Click += (_, _) => WriteResetInterval();
         resetUnit.SelectedIndexChanged += (_, _) => UpdateResetMaximum();
     }
@@ -47,7 +47,7 @@ public partial class MeasurementPanel : UserControl
 
     private void WriteResetInterval()
     {
-        ResetWriteRequested?.Invoke(this,
+        ResetWriteRequested?.Invoke(
             new(decimal.ToUInt32(resetInterval.Value), SelectedResetUnit));
     }
 

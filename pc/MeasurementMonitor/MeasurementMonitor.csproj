@@ -25,6 +25,9 @@
     </Compile>
     <Compile Update="MeasurementPanel.cs"><SubType>UserControl</SubType></Compile>
     <Compile Update="MeasurementPanel.Designer.cs"><DependentUpon>MeasurementPanel.cs</DependentUpon></Compile>
+    <EmbeddedResource Update="MeasurementPanel.resx">
+      <DependentUpon>MeasurementPanel.cs</DependentUpon>
+    </EmbeddedResource>
     <Compile Update="MonitorPanel.cs"><SubType>UserControl</SubType></Compile>
     <Compile Update="MonitorPanel.Designer.cs"><DependentUpon>MonitorPanel.cs</DependentUpon></Compile>
     <Compile Update="AppSettingsStore.cs"><SubType>Code</SubType></Compile>

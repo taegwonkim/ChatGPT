@@ -33,9 +33,9 @@ public partial class MainForm : Form
         wifiPanel.WriteRequested += (_, value) => WriteWifi(value);
         measurementPanel.ReadRequested += (_, _) => SendRead(PendingRead.Measurement, DeviceProtocol.MeasurementRead());
         measurementPanel.WriteRequested += (_, value) => WriteMeasurement(value);
-        measurementPanel.ResetReadRequested += (_, unit) =>
+        measurementPanel.ResetReadRequested += unit =>
             SendRead(PendingRead.Reset, DeviceProtocol.ResetRead(unit));
-        measurementPanel.ResetWriteRequested += (_, setting) => WriteResetInterval(setting);
+        measurementPanel.ResetWriteRequested += setting => WriteResetInterval(setting);
         port.DataReceived += PortDataReceived;
         FormClosing += (_, _) =>
         {
