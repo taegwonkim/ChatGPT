@@ -53,6 +53,82 @@ AT command UART도 같은 UART0 핀을 사용하도록 구성한 경우 PC USB-U
 즉, **펌웨어를 굽고 PC에서 로그를 확인할 때는 USB**, 실제 애플리케이션에서
 **STM32가 AT 명령을 보낼 때는 3.3 V UART TX/RX/GND**를 사용합니다.
 
+## ESP32-C3-WROOM에 ESP-AT 바이너리 설치
+
+`ESP32-C3-WROOM`은 모듈 이름이며 모듈 자체에는 USB 커넥터가 없습니다. 따라서
+다음 중 하나가 준비되어 있어야 합니다.
+
+- WROOM 모듈이 실장된 DevKit의 USB 커넥터와 USB-to-UART/JTAG 회로
+- 사용자 보드의 USB 회로
+- 외부 **3.3 V USB-to-UART** 어댑터
+
+먼저 [Espressif ESP-AT 바이너리 목록][at-binaries]에서 정확한 모듈명, flash
+크기 및 ESP-AT 버전에 맞는 ESP32-C3 패키지를 받습니다. 다른 모듈용 바이너리나
+flash 크기가 다른 이미지를 임의로 사용하지 마십시오. 압축을 푼 패키지의
+`factory` 디렉터리에 하나로 병합된 factory 이미지가 있다면 그 이미지를
+`0x0`에 기록하는 방법이 가장 간단합니다.
+
+### 1. 다운로드 모드 진입
+
+DevKit에서는 보통 **BOOT를 누른 상태에서 RESET/EN을 눌렀다가 RESET/EN을 먼저
+놓고 BOOT를 놓습니다.** 사용자 보드나 외부 USB-to-UART를 사용하면 ESP32-C3의
+다운로드 스트랩 핀인 GPIO9를 Low로 유지한 채 EN을 Low→High로 전환한 다음,
+다운로드가 시작되면 GPIO9를 놓습니다. 자동 다운로드 회로가 있는 DevKit은
+`esptool`이 이 과정을 대신할 수 있습니다.
+
+### 2. esptool 설치 및 포트 확인
+
+```sh
+python -m pip install --upgrade esptool
+
+# Linux 예: /dev/ttyUSB0 또는 /dev/ttyACM0
+python -m esptool --chip esp32c3 --port /dev/ttyUSB0 chip_id
+
+# Windows 예
+python -m esptool --chip esp32c3 --port COM5 chip_id
+```
+
+Linux에서 포트를 열 수 없다면 사용자를 `dialout` 그룹에 추가하거나 해당 포트의
+권한을 확인합니다. 다른 serial terminal이 포트를 점유하고 있으면 닫습니다.
+
+### 3. factory 이미지 기록
+
+아래의 파일명은 예시입니다. **압축 패키지에 실제로 들어 있는 factory `.bin`의
+경로로 바꾸어야 합니다.**
+
+```sh
+python -m esptool --chip esp32c3 --port /dev/ttyUSB0 --baud 460800 \
+  --before default-reset --after hard-reset erase-flash
+
+python -m esptool --chip esp32c3 --port /dev/ttyUSB0 --baud 460800 \
+  --before default-reset --after hard-reset write-flash \
+  0x0 factory/FACTORY_IMAGE_FROM_THE_PACKAGE.bin
+```
+
+연결이 불안정하면 `--baud 115200`으로 낮춥니다. 설치된 esptool 버전이
+하이픈 명령 대신 이전 형식만 받는 경우 `erase-flash`/`write-flash`를
+`erase_flash`/`write_flash`로 입력합니다.
+
+factory 이미지가 없고 여러 `.bin`만 있다면 파일을 임의로 합치거나 모두 `0x0`에
+쓰면 안 됩니다. 패키지에 포함된 `download.config`, `flash_args` 또는 README에
+표시된 **각 파일의 offset과 flash 옵션을 그대로** 사용합니다. 자세한 절차는
+[공식 ESP-AT 다운로드 가이드][at-download]를 따릅니다.
+
+### 4. 동작 확인
+
+기록이 끝나면 GPIO9를 High 상태로 두고 EN/RESET을 한 번 누릅니다. ESP-AT
+command UART의 TX/RX 핀과 baud rate는 다운로드용 USB serial port와 같다고
+가정하지 말고, 받은 바이너리의 pin configuration에서 확인합니다. 올바른 AT
+UART에 serial terminal을 연결하고 줄 끝을 CR-LF로 설정한 뒤 `AT`를 보내
+`OK`가 반환되는지 확인합니다. 확인 후 terminal을 닫고 STM32 UART를 연결합니다.
+
+> `esptool`이 연결되지 않으면 가장 먼저 USB 케이블이 충전 전용인지, GPIO9가
+> 다운로드 진입 시 Low인지, EN과 3.3 V 전원이 안정적인지 확인하십시오. 외부
+> USB-to-UART 어댑터의 5 V TX 신호를 ESP32-C3에 직접 연결하면 안 됩니다.
+
+[at-binaries]: https://docs.espressif.com/projects/esp-at/en/latest/esp32c3/AT_Binary_Lists/esp_at_binaries.html
+[at-download]: https://docs.espressif.com/projects/esp-at/en/latest/esp32c3/Get_Started/Downloading_guide.html
+
 ## CubeIDE 적용
 
 1. `Inc/esp_at.h`를 프로젝트의 `Core/Inc`로, `Src/esp_at.c`를 `Core/Src`로
