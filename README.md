@@ -13,6 +13,46 @@ UART 인터럽트와 링 버퍼를 사용합니다. `+IPD` TCP 데이터는 별�
   설정과 동일, 보통 115200), 8-N-1 및 USART global interrupt를 설정하십시오.
 - 드라이버는 STM32 HAL과 `HAL_GetTick()`에 의존합니다. RTOS는 필요하지 않습니다.
 
+## ESP32-C3-DevKit 연결: USB가 아니라 UART
+
+이 드라이버는 **DevKit의 USB 커넥터가 아니라 ESP-AT 명령용 UART 핀**에
+연결합니다. USB 커넥터는 ESP32-C3 펌웨어 다운로드, PC 콘솔/로그 및 보드
+전원 공급에 사용할 수 있지만, 이 STM32 HAL 드라이버는 USB host나 USB CDC를
+구현하지 않습니다.
+
+기본 배선은 다음과 같이 교차 연결합니다.
+
+| STM32 | ESP32-C3-DevKit |
+| --- | --- |
+| UART TX | ESP-AT UART RX |
+| UART RX | ESP-AT UART TX |
+| GND | GND |
+| 선택 사항 GPIO | EN/RESET |
+
+두 보드는 반드시 3.3 V UART 논리 레벨을 사용해야 합니다. DevKit에 USB 전원을
+공급하면서 STM32 UART를 연결할 수 있지만 GND는 공통으로 연결하고, 두 보드의
+3.3 V 출력 핀을 서로 직접 연결해 동시에 전원을 공급하지 마십시오.
+
+ESP-AT UART의 실제 GPIO 번호는 DevKit 이름만으로 결정하면 안 됩니다. 사용하는
+ESP-AT 바이너리의 대상 모듈과 빌드 설정에 따라 AT command UART와 핀 매핑이
+달라질 수 있으므로 해당 펌웨어의 pin configuration을 확인하십시오. 직접
+빌드한다면 ESP-AT의 UART 설정에서 선택한 TX/RX 핀을 위 표대로 연결합니다.
+
+일부 DevKit의 USB-to-UART bridge는 ESP32-C3의 UART0에 이미 연결되어 있습니다.
+AT command UART도 같은 UART0 핀을 사용하도록 구성한 경우 PC USB-UART와 STM32가
+동시에 송신하면 전기적 충돌과 데이터 혼선이 발생할 수 있습니다. 이 경우에는
+다음 중 하나를 선택하십시오.
+
+1. USB는 분리하고 DevKit을 별도의 적절한 전원으로 공급한 뒤 STM32 UART만
+   연결합니다.
+2. USB를 전원용으로만 사용하되 USB-UART bridge가 해당 신호를 구동하지 않는지
+   보드 회로도를 확인합니다.
+3. 가장 확실한 방법으로 ESP-AT command UART를 bridge와 겹치지 않는 GPIO/UART로
+   설정하여 다시 빌드합니다.
+
+즉, **펌웨어를 굽고 PC에서 로그를 확인할 때는 USB**, 실제 애플리케이션에서
+**STM32가 AT 명령을 보낼 때는 3.3 V UART TX/RX/GND**를 사용합니다.
+
 ## CubeIDE 적용
 
 1. `Inc/esp_at.h`를 프로젝트의 `Core/Inc`로, `Src/esp_at.c`를 `Core/Src`로
